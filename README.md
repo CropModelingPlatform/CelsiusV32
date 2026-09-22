@@ -191,7 +191,9 @@ runner Windows auto-hébergé disposant d'Access et de la base V32.
 - Examiner ensemble les changements `.bas` et les changements générés `.vb`.
 
 Des détails supplémentaires sont disponibles dans
-`CelsiusCli_V32_work/README.md` et `celsius_pipeline_v32/README.md`.
+`CelsiusCli_V32_work/README.md` et `celsius_pipeline_v32/README.md`. La carte
+des processus biophysiques et de leurs interactions est disponible dans
+[`CELSIUS_V32_Process_Graph.md`](CelsiusCli_V32_work/docs/CELSIUS_V32_Process_Graph.md).
 
 ## Licence
 

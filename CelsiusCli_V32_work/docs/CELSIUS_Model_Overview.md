@@ -7,6 +7,9 @@ This document explains CELSIUS V32 from the execution flow in the main program a
 > `celsius_audit_new/access_objects`. The scientific descriptions remain
 > implementation-oriented rather than an independent formal specification.
 
+For a graphical view of the coupled processes, see the
+[CELSIUS V32 biophysical process graph](CELSIUS_V32_Process_Graph.md).
+
 The description below is based mainly on:
 
 - [CelsiusRuntime.vb](../CelsiusRuntime.vb)
