@@ -5,11 +5,11 @@ param(
     [Parameter(Mandatory = $true)]
     [string]$TargetProjectDir,
 
-    [string]$WorkDir = (Join-Path $PSScriptRoot "work"),
+    [string]$WorkDir,
 
-    [string]$TemplateProjectDir = (Join-Path (Split-Path -Parent $PSScriptRoot) "CelsiusCli"),
+    [string]$TemplateProjectDir,
 
-    [string]$SchemaPath = (Join-Path $WorkDir "celsius_table_schema.csv"),
+    [string]$SchemaPath,
 
     [string]$PythonExe = "python",
 
@@ -19,6 +19,18 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
+
+# Windows PowerShell 5.1 can evaluate default parameter expressions before
+# $PSScriptRoot is initialized. Resolve path-dependent defaults here instead.
+if ([string]::IsNullOrWhiteSpace($WorkDir)) {
+    $WorkDir = Join-Path $PSScriptRoot "work"
+}
+if ([string]::IsNullOrWhiteSpace($TemplateProjectDir)) {
+    $TemplateProjectDir = Join-Path (Split-Path -Parent $PSScriptRoot) "CelsiusCli"
+}
+if ([string]::IsNullOrWhiteSpace($SchemaPath)) {
+    $SchemaPath = Join-Path $WorkDir "celsius_table_schema.csv"
+}
 
 $vbaExportDir = Join-Path $WorkDir "vba_export"
 $inputTsvDir = Join-Path $WorkDir "input_tsv"
