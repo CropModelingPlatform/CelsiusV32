@@ -1,0 +1,1030 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CELSIUS Soil-Crop Model Manual</title>
+  <style>
+    :root {
+      --bg: #f8f6f1;
+      --paper: #fffdfa;
+      --ink: #1f2933;
+      --muted: #52606d;
+      --line: #d9d4c7;
+      --accent: #0f766e;
+      --accent-soft: #e6f4f1;
+      --warm: #8d5a2b;
+      --code: #f2efe7;
+      --shadow: 0 8px 24px rgba(34, 34, 34, 0.08);
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      font-family: Georgia, "Times New Roman", serif;
+      color: var(--ink);
+      background: linear-gradient(180deg, #f6f2e7 0%, var(--bg) 100%);
+      line-height: 1.55;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 280px minmax(0, 1fr);
+      gap: 28px;
+      max-width: 1680px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    .toc {
+      position: sticky;
+      top: 18px;
+      align-self: start;
+      background: rgba(255, 253, 250, 0.96);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      box-shadow: var(--shadow);
+      padding: 18px 18px 22px 18px;
+      max-height: calc(100vh - 36px);
+      overflow: auto;
+      backdrop-filter: blur(6px);
+    }
+
+    .toc h2 {
+      margin: 0 0 10px 0;
+      font-size: 1rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--warm);
+    }
+
+    .toc ul {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+
+    .toc li { margin: 0; padding: 0; }
+    .toc a {
+      display: block;
+      padding: 6px 8px;
+      margin: 2px 0;
+      border-radius: 8px;
+      color: var(--ink);
+      text-decoration: none;
+      font-size: 0.96rem;
+    }
+
+    .toc a:hover { background: var(--accent-soft); color: var(--accent); }
+    .toc .sub a { padding-left: 18px; color: var(--muted); font-size: 0.92rem; }
+
+    main {
+      min-width: 0;
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      box-shadow: var(--shadow);
+      padding: 42px 54px 64px 54px;
+    }
+
+    header.hero {
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 24px;
+      margin-bottom: 28px;
+    }
+
+    .eyebrow {
+      color: var(--warm);
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      margin-bottom: 12px;
+    }
+
+    h1 {
+      margin: 0 0 12px 0;
+      font-size: 2.55rem;
+      line-height: 1.1;
+      font-weight: 700;
+    }
+
+    h2 {
+      margin-top: 42px;
+      margin-bottom: 16px;
+      font-size: 1.7rem;
+      border-top: 1px solid var(--line);
+      padding-top: 24px;
+    }
+
+    h3 {
+      margin-top: 28px;
+      margin-bottom: 12px;
+      font-size: 1.22rem;
+      color: var(--accent);
+    }
+
+    p.lead {
+      font-size: 1.08rem;
+      color: var(--muted);
+      max-width: 70ch;
+    }
+
+    .meta {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 22px;
+    }
+
+    .meta .card, .card {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: #fffdf8;
+      padding: 14px 16px;
+    }
+
+    .meta strong, .label {
+      display: block;
+      font-size: 0.82rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--warm);
+      margin-bottom: 6px;
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+      margin: 18px 0 8px 0;
+    }
+
+    .eq {
+      background: var(--code);
+      border: 1px solid #e3ddcf;
+      border-left: 6px solid var(--accent);
+      border-radius: 10px;
+      padding: 14px 16px;
+      font-family: "Courier New", monospace;
+      font-size: 0.94rem;
+      line-height: 1.5;
+      white-space: pre-wrap;
+      overflow-x: auto;
+    }
+
+    .flow {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      margin: 16px 0 22px 0;
+      align-items: stretch;
+    }
+
+    .node {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px 16px;
+      background: #fffefb;
+      position: relative;
+    }
+
+    .node.tables { background: #fbf6ec; }
+    .node.code { background: #eef7f6; }
+    .node.states { background: #f7f2fb; }
+
+    .node h4 {
+      margin: 0 0 8px 0;
+      font-size: 0.98rem;
+      color: var(--warm);
+    }
+
+    .arrow-row {
+      display: grid;
+      grid-template-columns: 1fr 42px 1fr 42px 1fr;
+      gap: 0;
+      align-items: stretch;
+      margin: 12px 0 24px 0;
+    }
+
+    .arrow {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--accent);
+      font-size: 1.6rem;
+      font-weight: 700;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 14px 0 24px 0;
+      font-size: 0.94rem;
+    }
+
+    th, td {
+      border: 1px solid var(--line);
+      padding: 9px 10px;
+      vertical-align: top;
+      text-align: left;
+    }
+
+    th {
+      background: #f4efe3;
+      color: var(--warm);
+      font-weight: 700;
+    }
+
+    tbody tr:nth-child(even) td { background: #fffdf8; }
+    code { background: #f1ede2; padding: 1px 5px; border-radius: 4px; }
+    ul.tight { margin-top: 8px; margin-bottom: 8px; }
+    .small { color: var(--muted); font-size: 0.92rem; }
+    .note {
+      border-left: 4px solid var(--warm);
+      background: #fbf6ec;
+      padding: 12px 14px;
+      border-radius: 8px;
+      margin: 14px 0 20px 0;
+    }
+
+    .figure {
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: linear-gradient(180deg, #fffdfa 0%, #f8f6f1 100%);
+      padding: 16px;
+      margin: 16px 0 22px 0;
+    }
+
+    .figure svg { width: 100%; height: auto; }
+    .caption {
+      color: var(--muted);
+      font-size: 0.92rem;
+      margin-top: 8px;
+    }
+
+    .source-matrix td:first-child, .source-matrix th:first-child { width: 24%; }
+    .source-matrix td:nth-child(2), .source-matrix th:nth-child(2) { width: 36%; }
+    .source-matrix td:nth-child(3), .source-matrix th:nth-child(3) { width: 22%; }
+
+    @media (max-width: 1180px) {
+      .layout { grid-template-columns: 1fr; }
+      .toc { position: static; max-height: none; }
+      main { padding: 28px 24px 42px 24px; }
+      .meta, .summary-grid, .flow { grid-template-columns: 1fr; }
+      .arrow-row { grid-template-columns: 1fr; }
+      .arrow { transform: rotate(90deg); }
+    }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <nav class="toc">
+      <h2>Contents</h2>
+      <ul>
+        <li><a href="#overview">1. Positioning</a></li>
+        <li><a href="#atlas">2. Process Atlas</a></li>
+        <li class="sub"><a href="#block-climate">2.1 Climate and Calendar</a></li>
+        <li class="sub"><a href="#block-phenology">2.2 Establishment and Phenology</a></li>
+        <li class="sub"><a href="#block-lai">2.3 LAI, Stress, Competition</a></li>
+        <li class="sub"><a href="#block-biomass">2.4 Biomass, CO2, Yield</a></li>
+        <li class="sub"><a href="#block-canopy">2.5 Mixed Canopy Transpiration</a></li>
+        <li class="sub"><a href="#block-mulch">2.6 Mulch and Runoff</a></li>
+        <li class="sub"><a href="#block-water">2.7 Soil Water Balance</a></li>
+        <li class="sub"><a href="#block-water-stress">2.8 Water Stress Pathways</a></li>
+        <li class="sub"><a href="#block-nitrogen">2.9 Soil Nitrogen Balance</a></li>
+        <li><a href="#nomenclature">3. Nomenclature</a></li>
+        <li><a href="#diagrams">4. Process Diagrams</a></li>
+        <li><a href="#caveats">5. Caveats</a></li>
+      </ul>
+    </nav>
+
+    <main>
+      <header class="hero">
+        <div class="eyebrow">CELSIUS Technical Manual</div>
+        <h1>CELSIUS Soil-Crop-Mulch Model Manual</h1>
+        <p class="lead">
+          This document reformulates the current CELSIUS implementation as a process manual in the spirit of a model reference document. The equations are inferred from the code, organized by process, and linked to the governing methods and the database tables that feed each block.
+        </p>
+        <div class="meta">
+          <div class="card">
+            <strong>Primary Control Flow</strong>
+            <span><code>SimulationControlClass.ReadParameters</code> and <code>Simulation()</code></span>
+          </div>
+          <div class="card">
+            <strong>Database Pattern</strong>
+            <span>SQLite input tables mirroring the historical Access schema</span>
+          </div>
+          <div class="card">
+            <strong>Model Scope</strong>
+            <span>Daily soil-water-crop-mulch model with optional daily nitrogen balance</span>
+          </div>
+        </div>
+      </header>
+
+      <section id="overview">
+        <h2>1. Positioning</h2>
+        <p>
+          CELSIUS is organized around simulation units. Each unit selects one climate forcing, one soil, one technical management, one initial condition set, one option set, and one simulation window. The runtime loops over <code>SimUnitList</code>, instantiates the control object, loads all dependent data, simulates day by day, and writes both summary and daily outputs.
+        </p>
+        <div class="summary-grid">
+          <div class="card">
+            <span class="label">Main Runtime</span>
+            <div><code>CelsiusRuntime.vb</code>, <code>PrincipalRunner.Run</code>, <code>SimulationControlClass.vb:28-197</code></div>
+          </div>
+          <div class="card">
+            <span class="label">Main Input Selection Table</span>
+            <div><code>SimUnitList</code></div>
+          </div>
+        </div>
+        <div class="figure">
+          <svg viewBox="0 0 1040 190" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Overall execution map">
+            <defs>
+              <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+                <path d="M0,0 L12,6 L0,12 z" fill="#0f766e"/>
+              </marker>
+            </defs>
+            <rect x="20" y="48" width="170" height="84" rx="14" fill="#fbf6ec" stroke="#d9d4c7"/>
+            <text x="105" y="79" font-size="20" text-anchor="middle" fill="#8d5a2b">SimUnitList</text>
+            <text x="105" y="103" font-size="15" text-anchor="middle" fill="#52606d">simulation keys</text>
+            <line x1="190" y1="90" x2="292" y2="90" stroke="#0f766e" stroke-width="3" marker-end="url(#arrow)"/>
+            <rect x="300" y="34" width="220" height="112" rx="14" fill="#eef7f6" stroke="#d9d4c7"/>
+            <text x="410" y="68" font-size="19" text-anchor="middle" fill="#0f766e">ReadParameters</text>
+            <text x="410" y="93" font-size="14" text-anchor="middle" fill="#52606d">climate, soil, plants,</text>
+            <text x="410" y="113" font-size="14" text-anchor="middle" fill="#52606d">management, initial state</text>
+            <line x1="520" y1="90" x2="622" y2="90" stroke="#0f766e" stroke-width="3" marker-end="url(#arrow)"/>
+            <rect x="630" y="34" width="180" height="112" rx="14" fill="#eef7f6" stroke="#d9d4c7"/>
+            <text x="720" y="68" font-size="19" text-anchor="middle" fill="#0f766e">Simulation</text>
+            <text x="720" y="93" font-size="14" text-anchor="middle" fill="#52606d">daily loop</text>
+            <text x="720" y="113" font-size="14" text-anchor="middle" fill="#52606d">coupled processes</text>
+            <line x1="810" y1="90" x2="912" y2="90" stroke="#0f766e" stroke-width="3" marker-end="url(#arrow)"/>
+            <rect x="920" y="34" width="100" height="112" rx="14" fill="#f7f2fb" stroke="#d9d4c7"/>
+            <text x="970" y="70" font-size="17" text-anchor="middle" fill="#8d5a2b">Outputs</text>
+            <text x="970" y="95" font-size="14" text-anchor="middle" fill="#52606d">OutputSynt</text>
+            <text x="970" y="115" font-size="14" text-anchor="middle" fill="#52606d">OutputD_*</text>
+          </svg>
+          <div class="caption">Figure 1. Execution chain implemented by the main runtime.</div>
+        </div>
+      </section>
+
+      <section id="atlas">
+        <h2>2. Process Atlas</h2>
+        <p>
+          Each process block below is presented in the same way:
+        </p>
+        <div class="arrow-row">
+          <div class="node tables">
+            <h4>Database Inputs</h4>
+            <div>Tables that supply parameters or forcings.</div>
+          </div>
+          <div class="arrow">→</div>
+          <div class="node code">
+            <h4>Governing Code</h4>
+            <div>Methods and line ranges where the process is implemented.</div>
+          </div>
+          <div class="arrow">→</div>
+          <div class="node states">
+            <h4>States and Outputs</h4>
+            <div>Internal variables or output tables affected by the process.</div>
+          </div>
+        </div>
+
+        <section id="block-climate">
+          <h3>2.1 Climate and Calendar</h3>
+          <div class="eq">Tmoy_j = (Tmin_j + Tmax_j) / 2
+
+lat_rad = pi * lat / 180
+delta_j = 0.409 * sin(2*pi*J/365 - 1.39)
+omega_j = -atan(-tan(lat_rad)*tan(delta_j) / sqrt(1 - tan(lat_rad)^2 * tan(delta_j)^2)) + 2*atan(1)
+DAYL_j = 24 * omega_j / pi
+
+If altitude correction is active:
+Tmin'_j = Tmin_j - 0.6 * (AltiCult - AltitudeStation) / 100
+Tmax'_j = Tmax_j - 0.6 * (AltiCult - AltitudeStation) / 100
+Tmoy'_j = (Tmin'_j + Tmax'_j) / 2
+
+DAP_j = StartDay - iplt_1 + j - 1</div>
+          <table class="source-matrix">
+            <thead>
+              <tr><th>Process block</th><th>Code sections</th><th>Database tables</th><th>Main state variables</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Climate forcing and calendar construction</td>
+                <td><code>DataClimClass.LisClimD</code> [DataClimClass.vb](/mnt/d/docs/amei_workshop/sensitivity_analysis_outputs/CelsiusCli/Converted/DataClimClass.vb:26), lines 26-107; <code>update_DAP</code> lines 108-117; <code>CorrigTAlt</code> lines 118-126; <code>LenDay</code> lines 138-150</td>
+                <td><code>SimUnitList</code>, <code>ListPAnnexes</code>, <code>Dweather</code>, <code>Tech_perCrop</code></td>
+                <td><code>Tmin</code>, <code>Tmax</code>, <code>Tmoy</code>, <code>Rg</code>, <code>Etp</code>, <code>Plu</code>, <code>DAYL</code>, <code>DAP</code></td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="flow">
+            <div class="node tables"><h4>Database Inputs</h4><div><code>ListPAnnexes</code><br><code>Dweather</code><br><code>SimUnitList</code><br><code>Tech_perCrop</code></div></div>
+            <div class="node code"><h4>Governing Code</h4><div><code>LisClimD</code><br><code>LenDay</code><br><code>update_DAP</code><br><code>CorrigTAlt</code></div></div>
+            <div class="node states"><h4>States and Outputs</h4><div>Daily forcing arrays used by all later processes</div></div>
+          </div>
+        </section>
+
+        <section id="block-phenology">
+          <h3>2.2 Establishment and Phenology</h3>
+          <div class="eq">HUleve_i,j = max(Tmoy_j - Tger_i, 0)
+TSlevee_i,j = TSlevee_i,j-1 + HUleve_i,j
+Emergence when TSlevee_i,j >= CTlevee_i and germination water constraint is lifted
+
+HU_i,j = max(min(Tmoy_j, tdmax_i) - tdmin_i, 0)
+
+Photoperiod factor during stage 2:
+DL_j = DAYL_j + 0.9
+PPFAC_i,j = 1                                  if DL_j < MOPP_i
+PPFAC_i,j = 1 - (DL_j - MOPP_i) * SensPhot_i   otherwise
+PPFAC_i,j = min(1, max(0, PPFAC_i,j))
+
+Direct mode:
+TxDev_i,j = HU_i,j * PPFAC_i,j * StopTransplant_i,j
+TS_i,j = TS_i,j-1 + TxDev_i,j
+Stage change when TS_i,j >= DVS_i
+
+Oryza-like mode:
+TS_i,j = TS_i,j-1 + HU_i,j
+DVS_i,j = DVS_i,j-1 + DVR_i,j-1 * HU_i,j
+DVR stage-specific, with photoperiod acting during stage 2</div>
+          <table class="source-matrix">
+            <thead>
+              <tr><th>Process block</th><th>Code sections</th><th>Database tables</th><th>Main state variables</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Crop establishment, emergence, phenology</td>
+                <td><code>SimulationControlClass.Simulation</code> lines 123-165; <code>PLanteClass.HUleve</code> lines 263-271; <code>GerminLevee</code> lines 272-293; <code>phenoCTphot</code> lines 302-388; <code>pheno_sigmaT</code> lines 389-477</td>
+                <td><code>Tech_perCrop</code>, <code>OptionsModel</code>, <code>Cultivars</code>, <code>PlantSpecies</code>, <code>StadePheno</code>, <code>Dweather</code></td>
+                <td><code>TSlevee</code>, <code>TS</code>, <code>DVS</code>, <code>DVSt</code>, <code>Currstge</code>, <code>JulPheno</code>, <code>cropsta</code>, <code>Death_day</code></td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="flow">
+            <div class="node tables"><h4>Database Inputs</h4><div><code>Tech_perCrop</code><br><code>OptionsModel</code><br><code>Cultivars</code><br><code>PlantSpecies</code><br><code>StadePheno</code><br><code>Dweather</code></div></div>
+            <div class="node code"><h4>Governing Code</h4><div><code>GerminLevee</code><br><code>phenoCTphot</code><br><code>pheno_sigmaT</code></div></div>
+            <div class="node states"><h4>States and Outputs</h4><div>Emergence status, phenological stage, maturity date, death date</div></div>
+          </div>
+        </section>
+
+        <section id="block-lai">
+          <h3>2.3 LAI, Stress, and Crop Competition</h3>
+          <div class="eq">TurfacH_i,j = 1                                   if ContrainteW_j > 1 - SeuilTurg_i
+TurfacH_i,j = ContrainteW_j / (1 - SeuilTurg_i)     otherwise
+
+TurfacN_i,j = 1                                     if NRF_i,j = 1 or N stress inactive
+TurfacN_i,j = NRF_i,j                               otherwise
+Turfac_i,j = min(TurfacH_i,j, TurfacN_i,j)
+
+If LAI competition is active:
+CompFac_dominated,j = exp(-k_dominant * LAI_dominant,j-1)
+CompFac_dominant,j = 1
+
+Density correction:
+deltaidens_i,j = dens_i,j
+deltaidens_i,j = dens_i,j * (dens_i,j / bdens_i)^adens_i   if LAI_i,j-1 > Laicomp_i and dens_i,j >= bdens_i
+
+Potential leaf expansion:
+dLAIpot_i,j = DLAImax_i / [1 + exp(5.5 * (Vlaimax - Ulai_i,j))] * HU_i,j * deltaidens_i,j
+
+Actual pre-senescence expansion:
+dLAI_i,j = dLAIpot_i,j * Turfac_i,j * CompFac_i,j
+
+Semi-arid senescence:
+dLAISen_base = (LAIrec_i - LAI_i,sen_start) / (2 - DVSt_i,sen_start)
+dLAISen_i,j = [dLAISen_base - SensiSen_i * (1 - Turfac_i,j) * LAI_i,j-1] * (DVSt_i,j - DVSt_i,j-1)</div>
+          <table class="source-matrix">
+            <thead>
+              <tr><th>Process block</th><th>Code sections</th><th>Database tables</th><th>Main state variables</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Leaf expansion, water and N reduction, inter-crop light competition</td>
+                <td><code>stressAzoteOld</code> lines 294-301; <code>stressAzote</code> lines 478-501; <code>Calcule_LAI</code> lines 502-602; <code>Calcule_LAI_SemiAride</code> lines 603-711; <code>deltaidens</code> lines 800-807</td>
+                <td><code>General_Parameters</code>, <code>Cultivars</code>, <code>PlantSpecies</code>, <code>OptionsModel</code>, <code>FertiMin_List</code>, <code>FertiOrga_List</code>, <code>Soil</code></td>
+                <td><code>Lai</code>, <code>LAIpot</code>, <code>Turfac</code>, <code>TurfacH</code>, <code>CompFac</code>, <code>Competition</code>, <code>NRF</code>, <code>NUPTtarget</code></td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="flow">
+            <div class="node tables"><h4>Database Inputs</h4><div><code>General_Parameters</code><br><code>PlantSpecies</code><br><code>Cultivars</code><br><code>OptionsModel</code><br><code>Ferti*</code><br><code>Soil</code></div></div>
+            <div class="node code"><h4>Governing Code</h4><div><code>stressAzote*</code><br><code>Calcule_LAI_SemiAride</code><br><code>deltaidens</code></div></div>
+            <div class="node states"><h4>States and Outputs</h4><div><code>LAI</code>, competition factors, stress factors, N response variables</div></div>
+          </div>
+        </section>
+
+        <section id="block-biomass">
+          <h3>2.4 Biomass, CO2 Response, and Grain Yield</h3>
+          <div class="eq">CO2fact_i = 2 - exp( ln(2 - alphaCO2_i) * (CO2c - 350) / (600 - 350) )
+
+Intercepted radiation:
+raint_i,j = 0.95 * ParSurRg * Rg_j * [1 - exp(-k_i * LAI_i,j)]
+
+Temperature response:
+Ftemp_i,j = 1 - ((Tmoy_j - tcopt_i) / (tcmin_i - tcopt_i))^2     if Tmoy_j <= tcopt_i
+Ftemp_i,j = 1 - ((Tmoy_j - tcopt_i) / (tcmax_i - tcopt_i))^2     if Tmoy_j > tcopt_i
+Ftemp_i,j = max(Ftemp_i,j, 0)
+
+Biomass increment:
+dBiom_i,j = CO2fact_i * WSfact_i,j * [Ebmax_i * raint_i,j - 0.0815 * raint_i,j^2] * Ftemp_i,j / 100
+Biom_i,j = Biom_i,j-1 + dBiom_i,j
+
+N uptake implied by biomass growth:
+NCvE_i = NCvEmin_i + (NCvEmax_i - NCvEmin_i) * alphaN_i
+Nuptake_i,j = dBiom_i,j / NCvE_i
+
+At stage 4 onset:
+Vitmoy_i = 100 / Nbjgrain_i * sum(dBiom_i over the grain-setting window)
+Ngrains_i = int(Cgrain_i * Vitmoy_i + Cgrainv0_i)
+
+During grain filling:
+IR_i,j = min(Vitircarb_i * (j - JourDrp_i + 1), IRmax_i)
+Grain_i,j = min(Biom_i,j * IR_i,j, P1grainMax_i * Ngrains_i / 100)</div>
+          <table class="source-matrix">
+            <thead>
+              <tr><th>Process block</th><th>Code sections</th><th>Database tables</th><th>Main state variables</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Biomass formation and grain production</td>
+                <td><code>PLanteClass.biomasse</code> [PLanteClass.vb](/mnt/d/docs/amei_workshop/sensitivity_analysis_outputs/CelsiusCli/Converted/PLanteClass.vb:712), lines 712-749; <code>Rendement</code> lines 750-779; <code>FCO2</code> lines 796-799</td>
+                <td><code>General_Parameters</code>, <code>Cultivars</code>, <code>PlantSpecies</code>, <code>ListPAnnexes</code>, <code>Dweather</code></td>
+                <td><code>deltaBiom</code>, <code>Biom</code>, <code>Nuptake</code>, <code>Ngrains</code>, <code>IR</code>, <code>Grain</code>, <code>P1grain</code>, <code>Vitmoy</code></td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="flow">
+            <div class="node tables"><h4>Database Inputs</h4><div><code>General_Parameters</code><br><code>Cultivars</code><br><code>PlantSpecies</code><br><code>ListPAnnexes</code><br><code>Dweather</code></div></div>
+            <div class="node code"><h4>Governing Code</h4><div><code>biomasse</code><br><code>Rendement</code><br><code>FCO2</code></div></div>
+            <div class="node states"><h4>States and Outputs</h4><div>Daily biomass growth, N uptake demand, grain number, grain yield, single grain weight</div></div>
+          </div>
+        </section>
+
+        <section id="block-canopy">
+          <h3>2.5 Mixed Canopy Transpiration</h3>
+          <div class="eq">LAIMC_j = sum_i LAI_i,j
+ZRacineMC_j = max_i Zrac_i,j
+
+delta_MC = k_extinction_MC - 0.2
+EoSM_j = ETp_j * exp(-delta_MC * LAIMC_j)
+
+Kc_j = 1 + (KmaxMC - 1) / [1 + exp(-1.5 * (LAIMC_j - 3))]
+eo_j = ETp_j * Kc_j
+TPotMC_j = (eo_j - EoSM_j) * [beta + (1 - beta) * (Esol_j + Emulch_j) / EoSM_j]
+
+WStressTMC_j = 1                     if ContrainteW_j > 0.7
+WStressTMC_j = ContrainteW_j / 0.7   otherwise
+
+TranspiMC_j = TPotMC_j * WStressTMC_j</div>
+          <table class="source-matrix">
+            <thead>
+              <tr><th>Process block</th><th>Code sections</th><th>Database tables</th><th>Main state variables</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Mixed-canopy aggregation and transpiration</td>
+                <td><code>CultureClass.InitMixedCanopy</code> [CultureClass.vb](/mnt/d/docs/amei_workshop/sensitivity_analysis_outputs/CelsiusCli/Converted/CultureClass.vb:44), lines 44-52; <code>LaiMixedCanopy</code> lines 53-57; <code>CroiRacMixedCrop</code> lines 58-61; <code>Evaporation_Pot_SolMulch</code> lines 62-65; <code>CalcTranspiMC</code> lines 66-86</td>
+                <td><code>PlantSpecies</code>, <code>Cultivars</code>, <code>Dweather</code></td>
+                <td><code>LaiMC</code>, <code>ZRacineMC</code>, <code>EoSM</code>, <code>TPotMC</code>, <code>TranspiMC</code>, <code>SigmaTranspiMC</code></td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="flow">
+            <div class="node tables"><h4>Database Inputs</h4><div><code>PlantSpecies</code><br><code>Cultivars</code><br><code>Dweather</code></div></div>
+            <div class="node code"><h4>Governing Code</h4><div><code>InitMixedCanopy</code><br><code>Evaporation_Pot_SolMulch</code><br><code>CalcTranspiMC</code></div></div>
+            <div class="node states"><h4>States and Outputs</h4><div><code>LAIMC</code>, mixed root depth, potential and actual transpiration</div></div>
+          </div>
+        </section>
+
+        <section id="block-mulch">
+          <h3>2.6 Mulch Water Balance and Runoff</h3>
+          <div class="eq">Qpaillis_j = Qpaillis_j-1 * exp(-Alpha_pail)
+FracSoilCover_j = 1 - exp(-Beta_pail * Qpaillis_j)
+
+Potential mulch evaporation:
+Eomulch_j = EoSM_j * [1 - exp(-gamma_mulch * Qpaillis_j)]
+
+Mulch storage rescaling by biomass decay:
+Smulch*_j = Smulch_j-1 * Qpaillis_j / Qpaillis_j-1
+
+epail1_j = Smulch*_j * (Qpaillis_j-1 - Qpaillis_j) / Qpaillis_j
+epail2_j = min(Eomulch_j - epail1_j, Smulch*_j)
+Emulch_j = epail1_j + epail2_j
+
+Interception:
+intercep_j = precip_j * FracSoilCover_j
+
+If mulch storage exceeds capacity:
+EauVersSol_j = precip_j - intercep_j + Smulch_j - CapaciteWMulch * Qpaillis_j
+
+Runoff:
+Ruis_j = (Ap1 + Ap3 * IKJ_j + b_ruis * Qpaillis_j) * (precip_j - seuil_j)
+Ruis_j = max(Ruis_j, 0)
+Ruis_j = Ruis_j * exp(-0.5 * LAI_j) if surface type activates canopy runoff attenuation
+
+IKJ_j+1 = (IKJ_j + precip_j) * exp(-0.5)</div>
+          <table class="source-matrix">
+            <thead>
+              <tr><th>Process block</th><th>Code sections</th><th>Database tables</th><th>Main state variables</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Mulch decomposition, interception, runoff, observed runoff forcing</td>
+                <td><code>MulchClass.LisMulch</code> [MulchClass.vb](/mnt/d/docs/amei_workshop/sensitivity_analysis_outputs/CelsiusCli/Converted/MulchClass.vb:26), lines 26-44; <code>LisRuiObs</code> lines 45-94; <code>BiomasseMulch</code> lines 95-99; <code>BilanMulch</code> lines 100-158; <code>Ruissellement</code> lines 159-195</td>
+                <td><code>Mulch</code>, <code>RuissellementObs</code>, <code>TypeSurfSol</code>, <code>Tech_Commun</code>, <code>Dweather</code>, <code>Irrigation_List</code></td>
+                <td><code>Qpaillis</code>, <code>FracSoilCover</code>, <code>Smulch</code>, <code>Emulch</code>, <code>Ruis</code>, <code>EauVersSol</code>, <code>IKJ</code></td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="flow">
+            <div class="node tables"><h4>Database Inputs</h4><div><code>Mulch</code><br><code>TypeSurfSol</code><br><code>RuissellementObs</code><br><code>Tech_Commun</code><br><code>Dweather</code><br><code>Irrigation_List</code></div></div>
+            <div class="node code"><h4>Governing Code</h4><div><code>BiomasseMulch</code><br><code>BilanMulch</code><br><code>Ruissellement</code><br><code>LisRuiObs</code></div></div>
+            <div class="node states"><h4>States and Outputs</h4><div>Mulch mass, mulch water, runoff, water transmitted to soil</div></div>
+          </div>
+        </section>
+
+        <section id="block-water">
+          <h3>2.7 Soil Water Balance</h3>
+          <div class="eq">Layer aggregation:
+TAW = (1 / Ztotsol) * sum_c [ (hcc_c - hmin_c) * da_c * epc_c / 10 ]
+TEW = (hcc_1 - hmin_1) * da_1 * Zsurf / 10
+
+Soil evaporation:
+Eos_j = EoSM_j - Eomulch_j
+Esol_j = Eos_j * ContrainteWSurf_j / SeuilEvap   if ContrainteWSurf_j < SeuilEvap
+Esol_j = Eos_j                                   otherwise
+Esol_j = min(Stsurf_j-1, Esol_j)
+
+Surface store:
+Stsurf_j = min(Stsurf_j-1 + precip_j, TEW) - Esol_j - min(Zsurf / Zrac_j, 1) * Transpi_j
+ContrainteWSurf_j = Stsurf_j / TEW
+
+Rooted zone:
+Strac_j = min(precip_j + Strac_j-1 + Deltazrac_j * TAW, Zrac_j * TAW) - E_Srac_j - Transpi_j
+E_Srac_j = Esol_j * min(1, Zrac_j / Zsurf)
+
+Non-rooted rootable zone:
+Dr_j = bil_j - TAW * (Zracmax - Zrac_j)    if bil_j > TAW * (Zracmax - Zrac_j)
+Stnonrac_j = max(0, bil_j)                 otherwise
+
+Deep zone and bottom drainage:
+Stprofond_j = min(Stprofond_j-1 + Dr_j, TAW * (Ztotsol - Zracmax))
+Drprofmax_j = max(Stprofond_j-1 + Dr_j - TAW * (Ztotsol - Zracmax), 0)
+
+Water stress:
+ContrainteW_j = Strac_j / (TAW * Zrac_j)   if Zrac_j > 0
+ContrainteW_j = 1                          otherwise</div>
+          <table class="source-matrix">
+            <thead>
+              <tr><th>Process block</th><th>Code sections</th><th>Database tables</th><th>Main state variables</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Soil capacity derivation, evaporation, bucket redistribution, drainage, wilting signal</td>
+                <td><code>SolClass.LisSol</code> [SolClass.vb](/mnt/d/docs/amei_workshop/sensitivity_analysis_outputs/CelsiusCli/Converted/SolClass.vb:92), lines 92-171; <code>initsol</code> lines 172-218; <code>evaporation</code> lines 219-237; <code>EauSol</code> lines 396-524</td>
+                <td><code>Soil</code>, <code>Soil_layers</code>, <code>ParamIni</code>, <code>TypeSurfSol</code>, <code>Dweather</code></td>
+                <td><code>TAW</code>, <code>TEW</code>, <code>Stsurf</code>, <code>Strac</code>, <code>Stnonrac</code>, <code>Stprofond</code>, <code>Dr</code>, <code>Drprofmax</code>, <code>ContrainteW</code>, <code>SignalFletrissement</code></td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="flow">
+            <div class="node tables"><h4>Database Inputs</h4><div><code>Soil</code><br><code>Soil_layers</code><br><code>ParamIni</code><br><code>TypeSurfSol</code><br><code>Dweather</code></div></div>
+            <div class="node code"><h4>Governing Code</h4><div><code>LisSol</code><br><code>initsol</code><br><code>evaporation</code><br><code>EauSol</code></div></div>
+            <div class="node states"><h4>States and Outputs</h4><div>Hydraulic stores, stress factors, drainage, runoff-ready infiltrated water accounting</div></div>
+          </div>
+        </section>
+
+        <section id="block-water-stress">
+          <h3>2.8 Water Stress Pathways</h3>
+          <p>
+            In CELSIUS, water stress is distributed across the model rather than implemented as a standalone module. The soil water balance produces control variables that are then reused by emergence, LAI growth, biomass accumulation, mixed-canopy transpiration, and drought-induced mortality logic.
+          </p>
+          <div class="eq">Primary soil control variables:
+ContrainteWSurf_j = Stsurf_j / TEW
+ContrainteW_j = Strac_j / (TAW * Zrac_j)   if Zrac_j &gt; 0
+ContrainteW_j = 1                          otherwise
+
+Emergence gate:
+ContrainteHlevee_j = False   if Stger_j &gt;= 0.14 * TAW * Zger
+ContrainteHlevee_j = True    if Stger_j &lt;= 0.10 * TAW * Zger
+
+Leaf expansion stress:
+TurfacH_i,j = 1                                   if ContrainteW_j &gt; 1 - SeuilTurg_i
+TurfacH_i,j = ContrainteW_j / (1 - SeuilTurg_i)   otherwise
+Turfac_i,j = min(TurfacH_i,j, TurfacN_i,j)
+
+Biomass stress:
+WSfactH_i,j = 1                                  if ContrainteW_j &gt; 1 - SeuilWS_i
+WSfactH_i,j = ContrainteW_j / (1 - SeuilWS_i)    otherwise
+WSfact_i,j = min(WSfactH_i,j, WSfactN_i,j)
+
+Mixed-canopy transpiration stress:
+WStressTMC_j = 1                       if ContrainteW_j &gt; PfactorMC
+WStressTMC_j = ContrainteW_j / PfactorMC   otherwise
+TranspiMC_j = TPotMC_j * WStressTMC_j
+
+Severe drought signal:
+SignalFletrissement_j = SignalFletrissement_j-1 + 1   if Stnonrac_j &lt;= 0.0001 and Strac_j &lt;= 0.02
+SignalFletrissement_j = 0                             otherwise</div>
+          <table class="source-matrix">
+            <thead>
+              <tr><th>Process block</th><th>Code sections</th><th>Database tables</th><th>Main state variables</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Hydric controls propagated from soil to crop functioning</td>
+                <td><code>SolClass.EauSol</code> [SolClass.vb](/mnt/d/docs/amei_workshop/sensitivity_analysis_outputs/CelsiusCli/Converted/SolClass.vb:396), lines 396-524; <code>PLanteClass.GerminLevee</code> [PLanteClass.vb](/mnt/d/docs/amei_workshop/sensitivity_analysis_outputs/CelsiusCli/Converted/PLanteClass.vb:272), lines 272-293; <code>Calcule_LAI_SemiAride</code> lines 603-711; <code>biomasse</code> lines 712-749; <code>CultureClass.CalcTranspiMC</code> [CultureClass.vb](/mnt/d/docs/amei_workshop/sensitivity_analysis_outputs/CelsiusCli/Converted/CultureClass.vb:66), lines 66-86; <code>phenoCTphot</code> lines 302-388; <code>pheno_sigmaT</code> lines 389-477</td>
+                <td><code>Soil</code>, <code>Soil_layers</code>, <code>ParamIni</code>, <code>PlantSpecies</code>, <code>Cultivars</code>, <code>OptionsModel</code>, <code>Dweather</code></td>
+                <td><code>ContrainteWSurf</code>, <code>ContrainteW</code>, <code>ContrainteHlevee</code>, <code>TurfacH</code>, <code>WSfactH</code>, <code>WStressTMC</code>, <code>SignalFletrissement</code></td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="flow">
+            <div class="node tables"><h4>Database Inputs</h4><div><code>Soil</code><br><code>Soil_layers</code><br><code>ParamIni</code><br><code>PlantSpecies</code><br><code>Cultivars</code><br><code>OptionsModel</code><br><code>Dweather</code></div></div>
+            <div class="node code"><h4>Governing Code</h4><div><code>EauSol</code><br><code>GerminLevee</code><br><code>Calcule_LAI_SemiAride</code><br><code>biomasse</code><br><code>CalcTranspiMC</code><br><code>phenoCTphot</code></div></div>
+            <div class="node states"><h4>States and Outputs</h4><div>Emergence permission, leaf expansion, senescence, biomass growth, transpiration, wilting death signal</div></div>
+          </div>
+          <div class="figure">
+            <svg viewBox="0 0 1120 240" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Water stress pathways">
+              <defs>
+                <marker id="a3" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+                  <path d="M0,0 L12,6 L0,12 z" fill="#0f766e"/>
+                </marker>
+              </defs>
+              <rect x="20" y="78" width="190" height="86" rx="14" fill="#fbf6ec" stroke="#d9d4c7"/>
+              <text x="115" y="108" text-anchor="middle" font-size="18" fill="#8d5a2b">Soil Stores</text>
+              <text x="115" y="130" text-anchor="middle" font-size="13" fill="#52606d">Stsurf, Strac, Stnonrac</text>
+              <text x="115" y="150" text-anchor="middle" font-size="13" fill="#52606d">computed by EauSol</text>
+
+              <line x1="210" y1="121" x2="336" y2="121" stroke="#0f766e" stroke-width="3" marker-end="url(#a3)"/>
+
+              <rect x="344" y="56" width="204" height="130" rx="14" fill="#eef7f6" stroke="#d9d4c7"/>
+              <text x="446" y="87" text-anchor="middle" font-size="18" fill="#0f766e">Hydric Indicators</text>
+              <text x="446" y="111" text-anchor="middle" font-size="13" fill="#52606d">ContrainteWSurf</text>
+              <text x="446" y="132" text-anchor="middle" font-size="13" fill="#52606d">ContrainteW</text>
+              <text x="446" y="153" text-anchor="middle" font-size="13" fill="#52606d">ContrainteHlevee</text>
+
+              <line x1="548" y1="121" x2="666" y2="68" stroke="#0f766e" stroke-width="3" marker-end="url(#a3)"/>
+              <line x1="548" y1="121" x2="666" y2="121" stroke="#0f766e" stroke-width="3" marker-end="url(#a3)"/>
+              <line x1="548" y1="121" x2="666" y2="174" stroke="#0f766e" stroke-width="3" marker-end="url(#a3)"/>
+
+              <rect x="676" y="20" width="180" height="74" rx="14" fill="#f7f2fb" stroke="#d9d4c7"/>
+              <text x="766" y="48" text-anchor="middle" font-size="17" fill="#8d5a2b">Emergence</text>
+              <text x="766" y="69" text-anchor="middle" font-size="13" fill="#52606d">GerminLevee gate</text>
+
+              <rect x="676" y="84" width="180" height="74" rx="14" fill="#f7f2fb" stroke="#d9d4c7"/>
+              <text x="766" y="112" text-anchor="middle" font-size="17" fill="#8d5a2b">Growth Stress</text>
+              <text x="766" y="133" text-anchor="middle" font-size="13" fill="#52606d">TurfacH, WSfactH, WStressTMC</text>
+
+              <rect x="676" y="148" width="180" height="74" rx="14" fill="#f7f2fb" stroke="#d9d4c7"/>
+              <text x="766" y="176" text-anchor="middle" font-size="17" fill="#8d5a2b">Wilting Signal</text>
+              <text x="766" y="197" text-anchor="middle" font-size="13" fill="#52606d">SignalFletrissement</text>
+
+              <line x1="856" y1="57" x2="1010" y2="57" stroke="#0f766e" stroke-width="3" marker-end="url(#a3)"/>
+              <line x1="856" y1="121" x2="1010" y2="121" stroke="#0f766e" stroke-width="3" marker-end="url(#a3)"/>
+              <line x1="856" y1="185" x2="1010" y2="185" stroke="#0f766e" stroke-width="3" marker-end="url(#a3)"/>
+
+              <rect x="1018" y="20" width="82" height="74" rx="14" fill="#fbf6ec" stroke="#d9d4c7"/>
+              <text x="1059" y="48" text-anchor="middle" font-size="15" fill="#8d5a2b">Crop</text>
+              <text x="1059" y="69" text-anchor="middle" font-size="12" fill="#52606d">established</text>
+
+              <rect x="1018" y="84" width="82" height="74" rx="14" fill="#fbf6ec" stroke="#d9d4c7"/>
+              <text x="1059" y="110" text-anchor="middle" font-size="15" fill="#8d5a2b">LAI</text>
+              <text x="1059" y="129" text-anchor="middle" font-size="12" fill="#52606d">biomass</text>
+              <text x="1059" y="145" text-anchor="middle" font-size="12" fill="#52606d">transpiration</text>
+
+              <rect x="1018" y="148" width="82" height="74" rx="14" fill="#fbf6ec" stroke="#d9d4c7"/>
+              <text x="1059" y="176" text-anchor="middle" font-size="15" fill="#8d5a2b">Death</text>
+              <text x="1059" y="197" text-anchor="middle" font-size="12" fill="#52606d">if persistent</text>
+            </svg>
+            <div class="caption">Figure 2. Water stress is propagated from soil stores toward emergence, growth, transpiration, and eventual drought-induced crop death.</div>
+          </div>
+        </section>
+
+        <section id="block-nitrogen">
+          <h3>2.9 Soil Nitrogen Balance</h3>
+          <div class="eq">Soil temperature proxy:
+Tsoil_j = Tmoy_j
+
+Mineralization of soil organic N:
+KnMin_j = 24 * exp(17.753 - 6350.5 / (Tsoil_j + 273))
+Tfact_j = 1 - exp(-KnMin_j / 168)
+
+Wfact_j = 1.111 * ContrainteWSurf_j   if ContrainteWSurf_j < 0.9
+Wfact_j = 10 - 10 * ContrainteWSurf_j otherwise
+Wfact_j = max(Wfact_j, 0)
+
+Nmin_j = Nhum_j-1 * Tfact_j * Wfact_j
+Nmin_j = Nmin_j * (0.0002 - ConcNsol_j) / 0.0002 * 10
+Nmin_j = max(Nmin_j, 0)
+
+Denitrification:
+KDenit_j = 6 * exp(0.07735 * Tsoil_j - 6.593)
+NDenit_j = XConcNsol_j * (1 - exp(-KDenit_j)) * Stsurf_j * 1000 * 10
+
+Applied organic matter branch (unfinished in code):
+FTR_j = 12 / (1 + 51.6 * exp(-0.103 * Tsoil_j))
+FH_j = 0.2 + 0.8 * ContrainteWSurf_j
+DNMinOrg_j = -DNres_j - DNhum_j - DNbio_j
+
+Available mineral N:
+Navail_j = Navail_j-1 + Nmin_j + AppMinN_j - 0.35 * AppMinN_j + DNMinOrg_j - perteNDrain_j - NuptMC_j - 0.01 * Navail_j-1 - NDenit_j
+Navail_j = max(Navail_j, 0)
+
+Solution concentration and drainage loss:
+VolEausol_j = ZracmaxMC_j * TAW
+ConcNsol_j = Navail_j / VolEausol_j
+perteNDrain_j = ConcNsol_j-1 * Dr_j</div>
+          <table class="source-matrix">
+            <thead>
+              <tr><th>Process block</th><th>Code sections</th><th>Database tables</th><th>Main state variables</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Daily N mineralization, denitrification, fertilizer accounting, drainage loss</td>
+                <td><code>SimulationControlClass.Simulation</code> lines 186-193 activates the daily N branch; <code>SolClass.TempSoil</code> lines 238-241; <code>MinNorgSS</code> lines 242-270; <code>DenitNavail</code> lines 271-289; <code>MinNorgapporteStics</code> lines 317-365; <code>StockNavail</code> lines 366-381; <code>ConcNEauSol</code> lines 382-395</td>
+                <td><code>Soil</code>, <code>FertiMin_List</code>, <code>FertiOrga_List</code>, <code>ListPAnnexes</code>, <code>Dweather</code>, <code>ListResidus</code> (expected but missing in provided database)</td>
+                <td><code>Nhum</code>, <code>Nmin</code>, <code>NDenit</code>, <code>DNMinOrg</code>, <code>Navail</code>, <code>ConcNsol</code>, <code>perteNDrain</code></td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="flow">
+            <div class="node tables"><h4>Database Inputs</h4><div><code>Soil</code><br><code>FertiMin_List</code><br><code>FertiOrga_List</code><br><code>ListPAnnexes</code><br><code>Dweather</code><br><code>ListResidus</code> expected</div></div>
+            <div class="node code"><h4>Governing Code</h4><div><code>MinNorgSS</code><br><code>DenitNavail</code><br><code>MinNorgapporteStics</code><br><code>StockNavail</code><br><code>ConcNEauSol</code></div></div>
+            <div class="node states"><h4>States and Outputs</h4><div>Available N, solution N concentration, drainage losses, N stress feedback to crops</div></div>
+          </div>
+        </section>
+      </section>
+
+      <section id="nomenclature">
+        <h2>3. Nomenclature</h2>
+        <p>
+          The table below collects the main symbols used in the equations. Because CELSIUS mixes state variables, parameters, and forcing variables with French code naming, the table keeps the code symbols and adds an interpretation.
+        </p>
+        <table>
+          <thead>
+            <tr>
+              <th>Symbol</th>
+              <th>Meaning</th>
+              <th>Units</th>
+              <th>Source tables</th>
+              <th>Main code owner</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td><code>Tmin</code>, <code>Tmax</code>, <code>Tmoy</code></td><td>Daily air temperature forcing</td><td>degC</td><td><code>Dweather</code></td><td><code>DataClimClass</code></td></tr>
+            <tr><td><code>Rg</code></td><td>Daily global radiation</td><td>MJ m^-2 d^-1 or source convention</td><td><code>Dweather</code></td><td><code>DataClimClass</code></td></tr>
+            <tr><td><code>Etp</code></td><td>Reference evapotranspiration forcing</td><td>mm d^-1</td><td><code>Dweather</code></td><td><code>DataClimClass</code></td></tr>
+            <tr><td><code>Plu</code></td><td>Daily rainfall</td><td>mm d^-1</td><td><code>Dweather</code></td><td><code>DataClimClass</code></td></tr>
+            <tr><td><code>DAYL</code></td><td>Astronomical day length</td><td>h</td><td><code>ListPAnnexes</code>, <code>Dweather</code></td><td><code>DataClimClass</code></td></tr>
+            <tr><td><code>CO2c</code></td><td>Atmospheric CO2 concentration</td><td>ppm</td><td><code>ListPAnnexes</code></td><td><code>DataClimClass</code></td></tr>
+            <tr><td><code>ConcNplu</code></td><td>N concentration in rainfall</td><td>database convention</td><td><code>ListPAnnexes</code></td><td><code>DataClimClass</code></td></tr>
+            <tr><td><code>StartDay</code>, <code>EndDay</code>, <code>NbJourSimul</code></td><td>Simulation calendar</td><td>day index</td><td><code>SimUnitList</code></td><td><code>SimulationUnitClass</code></td></tr>
+            <tr><td><code>iplt</code>, <code>irepiqu</code>, <code>ilev</code></td><td>Sowing, transplanting, and emergence dates</td><td>DOY</td><td><code>Tech_perCrop</code></td><td><code>GestionTechniqueClass</code></td></tr>
+            <tr><td><code>DensSem</code>, <code>densrepiqu</code></td><td>Sowing and transplant density</td><td>plants m^-2</td><td><code>Tech_perCrop</code></td><td><code>GestionTechniqueClass</code></td></tr>
+            <tr><td><code>tdmin</code>, <code>tdmax</code></td><td>Base and upper development temperatures</td><td>degC</td><td><code>PlantSpecies</code></td><td><code>PLanteClass</code></td></tr>
+            <tr><td><code>tcmin</code>, <code>tcopt</code>, <code>tcmax</code></td><td>Temperature response for biomass conversion</td><td>degC</td><td><code>PlantSpecies</code></td><td><code>PLanteClass</code></td></tr>
+            <tr><td><code>CTstade</code>, <code>TDV</code></td><td>Phenological thresholds and normalized stage coordinates</td><td>degC day or normalized units</td><td><code>StadePheno</code></td><td><code>PLanteClass</code></td></tr>
+            <tr><td><code>MOPP</code>, <code>SensPhot</code></td><td>Photoperiod threshold and sensitivity</td><td>h, 1/h</td><td><code>Cultivars</code></td><td><code>PLanteClass</code></td></tr>
+            <tr><td><code>Tger</code>, <code>CTlevee</code></td><td>Emergence temperature threshold and thermal requirement</td><td>degC, degC day</td><td><code>PlantSpecies</code></td><td><code>PLanteClass</code></td></tr>
+            <tr><td><code>HU</code>, <code>TS</code>, <code>DVS</code>, <code>DVSt</code></td><td>Thermal-time and development states</td><td>degC day or normalized</td><td>derived</td><td><code>PLanteClass</code></td></tr>
+            <tr><td><code>Lai</code>, <code>LaiMC</code></td><td>Crop and mixed-canopy leaf area index</td><td>m^2 m^-2</td><td>derived</td><td><code>PLanteClass</code>, <code>CultureClass</code></td></tr>
+            <tr><td><code>DLAImax</code></td><td>Potential daily LAI expansion coefficient</td><td>dimensionless per day-step formulation</td><td><code>PlantSpecies</code></td><td><code>PLanteClass</code></td></tr>
+            <tr><td><code>SeuilTurg</code>, <code>SeuilWS</code></td><td>Water-stress thresholds for LAI and biomass</td><td>fraction</td><td><code>PlantSpecies</code></td><td><code>PLanteClass</code></td></tr>
+            <tr><td><code>NRF</code></td><td>Nitrogen reduction factor</td><td>fraction</td><td>derived from <code>Soil</code>, <code>Ferti*</code></td><td><code>PLanteClass</code></td></tr>
+            <tr><td><code>Turfac</code>, <code>WSfact</code></td><td>Stress multipliers for LAI and biomass</td><td>fraction</td><td>derived</td><td><code>PLanteClass</code></td></tr>
+            <tr><td><code>CoefExtin</code></td><td>Canopy extinction coefficient</td><td>dimensionless</td><td><code>PlantSpecies</code></td><td><code>PLanteClass</code></td></tr>
+            <tr><td><code>Ebmax</code></td><td>Potential radiation conversion efficiency</td><td>g MJ^-1 in code convention</td><td><code>PlantSpecies</code></td><td><code>PLanteClass</code></td></tr>
+            <tr><td><code>alphaCO2</code>, <code>CO2fact</code></td><td>CO2 sensitivity and resulting multiplier</td><td>dimensionless</td><td><code>PlantSpecies</code>, <code>ListPAnnexes</code></td><td><code>PLanteClass</code></td></tr>
+            <tr><td><code>Biom</code>, <code>deltaBiom</code></td><td>Total aerial biomass and daily increment</td><td>t ha^-1 in practice</td><td>derived</td><td><code>PLanteClass</code></td></tr>
+            <tr><td><code>Ngrains</code>, <code>Grain</code>, <code>P1grain</code>, <code>IR</code></td><td>Yield components</td><td>grains m^-2, t ha^-1, g grain^-1, fraction</td><td><code>Cultivars</code>, <code>PlantSpecies</code></td><td><code>PLanteClass</code></td></tr>
+            <tr><td><code>Zrac</code>, <code>ZRacineMC</code>, <code>Zracmax</code></td><td>Crop and canopy root-front depth</td><td>cm</td><td><code>PlantSpecies</code>, <code>Soil</code></td><td><code>PLanteClass</code>, <code>CultureClass</code></td></tr>
+            <tr><td><code>Qpaillis</code></td><td>Mulch dry matter on soil surface</td><td>Mg ha^-1</td><td><code>Mulch</code>, <code>ParamIni</code>, <code>Tech_Commun</code></td><td><code>MulchClass</code></td></tr>
+            <tr><td><code>gamma_mulch</code>, <code>CapaciteWMulch</code>, <code>Alpha_pail</code>, <code>Beta_pail</code>, <code>b_ruis</code></td><td>Mulch process parameters</td><td>various</td><td><code>Mulch</code></td><td><code>MulchClass</code></td></tr>
+            <tr><td><code>Ruis</code>, <code>IKJ</code></td><td>Daily runoff and antecedent rainfall index</td><td>mm, mm-like index</td><td><code>TypeSurfSol</code>, <code>RuissellementObs</code></td><td><code>MulchClass</code></td></tr>
+            <tr><td><code>TAW</code>, <code>TEW</code></td><td>Available soil water capacity and evaporative reservoir</td><td>mm cm^-1, mm</td><td><code>Soil</code>, <code>Soil_layers</code></td><td><code>SolClass</code></td></tr>
+            <tr><td><code>Stsurf</code>, <code>Strac</code>, <code>Stnonrac</code>, <code>Stprofond</code></td><td>Water stocks in the soil buckets</td><td>mm</td><td>derived</td><td><code>SolClass</code></td></tr>
+            <tr><td><code>ContrainteWSurf</code>, <code>ContrainteW</code></td><td>Surface and root-zone water stress indicators</td><td>fraction</td><td>derived</td><td><code>SolClass</code></td></tr>
+            <tr><td><code>Dr</code>, <code>Drprofmax</code></td><td>Drainage below rootable zone and below soil profile</td><td>mm d^-1</td><td>derived</td><td><code>SolClass</code></td></tr>
+            <tr><td><code>Stger</code>, <code>ContrainteHlevee</code></td><td>Germination-layer water store and emergence gate</td><td>mm, Boolean</td><td><code>Soil</code>, <code>ParamIni</code></td><td><code>SolClass</code></td></tr>
+            <tr><td><code>SignalFletrissement</code></td><td>Consecutive severe-dryness counter</td><td>days</td><td>derived</td><td><code>SolClass</code></td></tr>
+            <tr><td><code>Nhum</code>, <code>Nmin</code>, <code>NDenit</code>, <code>Navail</code></td><td>Soil organic N, daily mineralized N, daily denitrified N, available mineral N</td><td>kg N ha^-1</td><td><code>Soil</code>, <code>Ferti*</code></td><td><code>SolClass</code></td></tr>
+            <tr><td><code>ConcNsol</code>, <code>perteNDrain</code></td><td>Soil solution N concentration and drainage N loss</td><td>kg N m^-3 and kg N ha^-1 d^-1</td><td>derived</td><td><code>SolClass</code></td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="diagrams">
+        <h2>4. Process Diagrams</h2>
+        <div class="figure">
+          <svg viewBox="0 0 1120 360" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Daily process diagram">
+            <defs>
+              <marker id="a2" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+                <path d="M0,0 L12,6 L0,12 z" fill="#0f766e"/>
+              </marker>
+            </defs>
+            <rect x="40" y="24" width="170" height="64" rx="12" fill="#fbf6ec" stroke="#d9d4c7"/>
+            <text x="125" y="51" text-anchor="middle" font-size="18" fill="#8d5a2b">Climate</text>
+            <text x="125" y="72" text-anchor="middle" font-size="13" fill="#52606d">Dweather + ListPAnnexes</text>
+
+            <rect x="274" y="24" width="190" height="64" rx="12" fill="#fbf6ec" stroke="#d9d4c7"/>
+            <text x="369" y="51" text-anchor="middle" font-size="18" fill="#8d5a2b">Management</text>
+            <text x="369" y="72" text-anchor="middle" font-size="13" fill="#52606d">Tech + Irrig + Ferti</text>
+
+            <rect x="520" y="24" width="180" height="64" rx="12" fill="#fbf6ec" stroke="#d9d4c7"/>
+            <text x="610" y="51" text-anchor="middle" font-size="18" fill="#8d5a2b">Plants</text>
+            <text x="610" y="72" text-anchor="middle" font-size="13" fill="#52606d">Cultivars + Species</text>
+
+            <rect x="748" y="24" width="160" height="64" rx="12" fill="#fbf6ec" stroke="#d9d4c7"/>
+            <text x="828" y="51" text-anchor="middle" font-size="18" fill="#8d5a2b">Soil</text>
+            <text x="828" y="72" text-anchor="middle" font-size="13" fill="#52606d">Soil + Soil_layers</text>
+
+            <rect x="944" y="24" width="140" height="64" rx="12" fill="#fbf6ec" stroke="#d9d4c7"/>
+            <text x="1014" y="51" text-anchor="middle" font-size="18" fill="#8d5a2b">Mulch</text>
+            <text x="1014" y="72" text-anchor="middle" font-size="13" fill="#52606d">Mulch + TypeSurf</text>
+
+            <rect x="82" y="146" width="208" height="72" rx="12" fill="#eef7f6" stroke="#d9d4c7"/>
+            <text x="186" y="173" text-anchor="middle" font-size="18" fill="#0f766e">Phenology + Emergence</text>
+            <text x="186" y="196" text-anchor="middle" font-size="13" fill="#52606d">heat units, photoperiod, crop status</text>
+
+            <rect x="326" y="146" width="214" height="72" rx="12" fill="#eef7f6" stroke="#d9d4c7"/>
+            <text x="433" y="173" text-anchor="middle" font-size="18" fill="#0f766e">LAI + Biomass + Yield</text>
+            <text x="433" y="196" text-anchor="middle" font-size="13" fill="#52606d">stress factors, radiation, grain filling</text>
+
+            <rect x="580" y="146" width="196" height="72" rx="12" fill="#eef7f6" stroke="#d9d4c7"/>
+            <text x="678" y="173" text-anchor="middle" font-size="18" fill="#0f766e">Mixed Canopy</text>
+            <text x="678" y="196" text-anchor="middle" font-size="13" fill="#52606d">LAI aggregation, transpiration</text>
+
+            <rect x="820" y="146" width="212" height="72" rx="12" fill="#eef7f6" stroke="#d9d4c7"/>
+            <text x="926" y="173" text-anchor="middle" font-size="18" fill="#0f766e">Mulch + Runoff</text>
+            <text x="926" y="196" text-anchor="middle" font-size="13" fill="#52606d">interception, storage, runoff routing</text>
+
+            <rect x="220" y="270" width="254" height="72" rx="12" fill="#f7f2fb" stroke="#d9d4c7"/>
+            <text x="347" y="297" text-anchor="middle" font-size="18" fill="#8d5a2b">Soil Water Balance</text>
+            <text x="347" y="320" text-anchor="middle" font-size="13" fill="#52606d">surface, root zone, non-rooted zone, drainage</text>
+
+            <rect x="640" y="270" width="254" height="72" rx="12" fill="#f7f2fb" stroke="#d9d4c7"/>
+            <text x="767" y="297" text-anchor="middle" font-size="18" fill="#8d5a2b">Soil Nitrogen Balance</text>
+            <text x="767" y="320" text-anchor="middle" font-size="13" fill="#52606d">mineralization, denitrification, uptake, loss</text>
+
+            <line x1="125" y1="88" x2="186" y2="146" stroke="#0f766e" stroke-width="3" marker-end="url(#a2)"/>
+            <line x1="369" y1="88" x2="186" y2="146" stroke="#0f766e" stroke-width="3" marker-end="url(#a2)"/>
+            <line x1="610" y1="88" x2="186" y2="146" stroke="#0f766e" stroke-width="3" marker-end="url(#a2)"/>
+            <line x1="610" y1="88" x2="433" y2="146" stroke="#0f766e" stroke-width="3" marker-end="url(#a2)"/>
+            <line x1="125" y1="88" x2="433" y2="146" stroke="#0f766e" stroke-width="3" marker-end="url(#a2)"/>
+            <line x1="433" y1="218" x2="347" y2="270" stroke="#0f766e" stroke-width="3" marker-end="url(#a2)"/>
+            <line x1="678" y1="218" x2="347" y2="270" stroke="#0f766e" stroke-width="3" marker-end="url(#a2)"/>
+            <line x1="926" y1="218" x2="347" y2="270" stroke="#0f766e" stroke-width="3" marker-end="url(#a2)"/>
+            <line x1="828" y1="88" x2="347" y2="270" stroke="#0f766e" stroke-width="3" marker-end="url(#a2)"/>
+            <line x1="1014" y1="88" x2="926" y2="146" stroke="#0f766e" stroke-width="3" marker-end="url(#a2)"/>
+            <line x1="347" y1="270" x2="433" y2="218" stroke="#0f766e" stroke-width="3" marker-end="url(#a2)"/>
+            <line x1="347" y1="270" x2="767" y2="270" stroke="#0f766e" stroke-width="3" marker-end="url(#a2)"/>
+            <line x1="767" y1="270" x2="433" y2="218" stroke="#0f766e" stroke-width="3" marker-end="url(#a2)"/>
+          </svg>
+          <div class="caption">Figure 3. Daily interaction graph reconstructed from <code>SimulationControlClass.Simulation</code>.</div>
+        </div>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Equation block</th>
+              <th>Primary controller entry</th>
+              <th>Direct code sections</th>
+              <th>Input tables</th>
+              <th>Main outputs</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>Climate and calendar</td><td><code>ReadParameters</code> lines 49-76</td><td><code>DataClimClass</code> climate loaders and transformations</td><td><code>SimUnitList</code>, <code>ListPAnnexes</code>, <code>Dweather</code>, <code>Tech_perCrop</code></td><td>Daily forcing arrays</td></tr>
+            <tr><td>Establishment and phenology</td><td><code>Simulation</code> lines 123-159</td><td><code>GerminLevee</code>, <code>phenoCTphot</code>, <code>pheno_sigmaT</code></td><td><code>Tech_perCrop</code>, <code>OptionsModel</code>, <code>Cultivars</code>, <code>PlantSpecies</code>, <code>StadePheno</code></td><td><code>cropsta</code>, <code>Currstge</code>, <code>JulPheno</code></td></tr>
+            <tr><td>LAI and crop stress</td><td><code>Simulation</code> lines 152-163</td><td><code>stressAzote*</code>, <code>Calcule_LAI_SemiAride</code></td><td><code>General_Parameters</code>, <code>PlantSpecies</code>, <code>Ferti*</code>, <code>Soil</code></td><td><code>Lai</code>, <code>Turfac</code>, <code>CompFac</code></td></tr>
+            <tr><td>Biomass and yield</td><td><code>Simulation</code> lines 163-165</td><td><code>biomasse</code>, <code>Rendement</code></td><td><code>General_Parameters</code>, <code>PlantSpecies</code>, <code>Cultivars</code>, <code>Dweather</code>, <code>ListPAnnexes</code></td><td><code>Biom</code>, <code>Grain</code>, <code>Ngrains</code></td></tr>
+            <tr><td>Mixed canopy</td><td><code>Simulation</code> lines 166-184</td><td><code>CultureClass</code> aggregation and transpiration routines</td><td><code>Dweather</code>, crop states</td><td><code>LaiMC</code>, <code>TranspiMC</code></td></tr>
+            <tr><td>Mulch and runoff</td><td><code>Simulation</code> lines 175-179</td><td><code>BiomasseMulch</code>, <code>Ruissellement</code>, <code>BilanMulch</code></td><td><code>Mulch</code>, <code>TypeSurfSol</code>, <code>RuissellementObs</code>, <code>Irrigation_List</code>, <code>Dweather</code></td><td><code>Emulch</code>, <code>Ruis</code>, <code>EauVersSol</code></td></tr>
+            <tr><td>Soil water balance</td><td><code>Simulation</code> lines 180-184</td><td><code>evaporation</code>, <code>EauSol</code></td><td><code>Soil</code>, <code>Soil_layers</code>, <code>ParamIni</code>, climate and canopy states</td><td><code>Stsurf</code>, <code>Strac</code>, <code>Dr</code>, <code>ContrainteW</code></td></tr>
+            <tr><td>Water stress pathways</td><td><code>Simulation</code> lines 144-184</td><td><code>GerminLevee</code>, <code>Calcule_LAI_SemiAride</code>, <code>biomasse</code>, <code>CalcTranspiMC</code>, <code>phenoCTphot</code>, <code>EauSol</code></td><td><code>Soil</code>, <code>Soil_layers</code>, <code>ParamIni</code>, <code>PlantSpecies</code>, <code>Cultivars</code>, <code>OptionsModel</code>, <code>Dweather</code></td><td><code>ContrainteHlevee</code>, <code>TurfacH</code>, <code>WSfactH</code>, <code>WStressTMC</code>, <code>SignalFletrissement</code></td></tr>
+            <tr><td>Soil nitrogen balance</td><td><code>Simulation</code> lines 186-193</td><td><code>MinNorgSS</code>, <code>DenitNavail</code>, <code>MinNorgapporteStics</code>, <code>StockNavail</code>, <code>ConcNEauSol</code></td><td><code>Soil</code>, <code>FertiMin_List</code>, <code>FertiOrga_List</code>, <code>ListPAnnexes</code>, <code>ListResidus</code> expected</td><td><code>Navail</code>, <code>ConcNsol</code>, <code>perteNDrain</code></td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="caveats">
+        <h2>5. Caveats</h2>
+        <div class="note">
+          <strong>Interpretation status.</strong> This manual is derived from the current implementation. It is intentionally close to the code, not to an idealized formulation.
+        </div>
+        <ul class="tight">
+          <li>The organic matter mineralization routine for applied residues, <code>MinNorgapporteStics</code>, is marked unfinished in comments and depends on residue parameters expected from <code>ListResidus</code>, which is absent from the provided database.</li>
+          <li>The soil water model behaves mainly as a bucket formulation even though a layered schema exists in the database.</li>
+          <li>Soil temperature in the N module is currently approximated by mean air temperature.</li>
+          <li>The competition logic for mixed canopies is implemented but acknowledged in comments as needing cautious validation.</li>
+          <li>Recursive multi-simulation behavior exists in the controller but is only partially operational in the current port.</li>
+        </ul>
+        <p class="small">
+          Companion files: [CELSIUS_Model_Overview.md](/mnt/d/docs/amei_workshop/sensitivity_analysis_outputs/CelsiusCli/docs/CELSIUS_Model_Overview.md) and [CELSIUS_Process_Equations.md](/mnt/d/docs/amei_workshop/sensitivity_analysis_outputs/CelsiusCli/docs/CELSIUS_Process_Equations.md).
+        </p>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

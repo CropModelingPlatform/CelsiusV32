@@ -6,6 +6,62 @@
 *.[lL][aA][cC][cC][dD][bB]
 *.[lL][dD][bB]
 
+# Access databases are source/data artifacts that are too large for ordinary Git.
+*.[aA][cC][cC][dD][aA]
+*.[aA][cC][cC][dD][bB]
+*.[aA][cC][cC][dD][eE]
+*.[mM][dD][bB]
+*.[mM][dD][eE]
+
+# Generated SQLite databases
+*.db
+*.sqlite
+*.sqlite3
+
+# Keep the SQLite runtime libraries required by the Linux build. On
+# case-insensitive repositories, *.sqlite also matches System.Data.SQLite.
+!CelsiusCli_V32_work/lib/
+!CelsiusCli_V32_work/lib/System.Data.SQLite/
+!CelsiusCli_V32_work/lib/System.Data.SQLite/**
+
+# .NET build and publication artifacts
+**/bin/
+**/obj/
+publish/
+
+# Legacy pre-V32 project and pipeline; the V32 variants are canonical.
+/CelsiusCli/
+/celsius_pipeline/
+
+# Pipeline working directories and regression outputs
+**/work/
+**/regression_work/
+**/__pycache__/
+*.py[cod]
+
+# The older Access export does not match the V32 CLI sources.
+/celsius_access_export/
+
+# Keep only the V32 Access source objects from the local audit workspace.
+/celsius_audit_new/*
+!/celsius_audit_new/access_objects/
+!/celsius_audit_new/access_objects/**
+
+# Bulk table exports and generated simulation outputs
+celsius_csv_export*/
+celsius_tsv_export*/
+OutputD_*.tsv
+OutputSynt.tsv
+
+# IDE, operating-system and local Codex files
+.vs/
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+.agents/
+.codex/
+
 # The following sections constitute a list of Office file extensions that support VBA.
 # If you want to exclude Office files from your repo, uncomment the corresponding file extensions.
 

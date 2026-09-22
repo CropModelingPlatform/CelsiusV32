@@ -1,0 +1,49 @@
+name: Celsius V32 CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  build-linux:
+    name: Build and smoke-test Linux CLI
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Install .NET 9 SDK
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 9.0.x
+
+      - name: Restore dependencies
+        run: >-
+          dotnet restore
+          CelsiusCli_V32_work/CelsiusCli.vbproj
+          --runtime linux-x64
+
+      - name: Build CLI
+        run: >-
+          dotnet build
+          CelsiusCli_V32_work/CelsiusCli.vbproj
+          --configuration Release
+          --runtime linux-x64
+          --no-restore
+
+      - name: Publish CLI
+        run: >-
+          dotnet publish
+          CelsiusCli_V32_work/CelsiusCli.vbproj
+          --configuration Release
+          --runtime linux-x64
+          --self-contained false
+          --no-restore
+          --output artifacts/linux-x64
+
+      - name: Smoke-test command
+        run: ./artifacts/linux-x64/CelsiusCli --help

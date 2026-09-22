@@ -1,0 +1,25 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>CelsiusCli</RootNamespace>
+    <TargetFramework>net9.0</TargetFramework>
+    <OptionStrict>Off</OptionStrict>
+    <OptionExplicit>Off</OptionExplicit>
+  </PropertyGroup>
+
+  <ItemGroup Condition="'$(OS)' != 'Windows_NT'">
+    <Reference Include="System.Data.SQLite">
+      <HintPath>lib/System.Data.SQLite/netstandard2.1/System.Data.SQLite.dll</HintPath>
+    </Reference>
+    <None Include="lib/System.Data.SQLite/runtimes/linux-x64/native/SQLite.Interop.dll">
+      <Link>SQLite.Interop.dll</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(OS)' == 'Windows_NT'">
+    <PackageReference Include="System.Data.SQLite" Version="2.0.4" />
+  </ItemGroup>
+
+</Project>
