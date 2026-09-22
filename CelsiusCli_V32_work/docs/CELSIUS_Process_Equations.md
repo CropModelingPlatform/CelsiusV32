@@ -1,16 +1,22 @@
-# CELSIUS Process Equations
+# CELSIUS V32 Process Equations
 
-This document rewrites the main CELSIUS algorithms as mathematical process descriptions inferred from the code. It is intended as a model-oriented companion to [CELSIUS_Model_Overview.md](/mnt/d/docs/amei_workshop/sensitivity_analysis_outputs/CelsiusCli/docs/CELSIUS_Model_Overview.md).
+This document rewrites the main CELSIUS V32 algorithms as mathematical process descriptions inferred from the code. It is intended as a model-oriented companion to [CELSIUS_Model_Overview.md](CELSIUS_Model_Overview.md).
+
+> **V32 revision status (September 2026).** This revision is tied to the
+> generated VB.NET sources in `CelsiusCli_V32_work/Converted`, which are
+> reproduced exactly from `celsius_audit_new/access_objects`. The formulations
+> remain implementation-derived and have not undergone an independent
+> equation-by-equation scientific validation.
 
 It is not an official scientific specification. It is an interpretation of the current implementation, mainly from:
 
-- [SimulationControlClass.vb](/mnt/d/docs/amei_workshop/sensitivity_analysis_outputs/CelsiusCli/Converted/SimulationControlClass.vb)
-- [PLanteClass.vb](/mnt/d/docs/amei_workshop/sensitivity_analysis_outputs/CelsiusCli/Converted/PLanteClass.vb)
-- [CultureClass.vb](/mnt/d/docs/amei_workshop/sensitivity_analysis_outputs/CelsiusCli/Converted/CultureClass.vb)
-- [MulchClass.vb](/mnt/d/docs/amei_workshop/sensitivity_analysis_outputs/CelsiusCli/Converted/MulchClass.vb)
-- [SolClass.vb](/mnt/d/docs/amei_workshop/sensitivity_analysis_outputs/CelsiusCli/Converted/SolClass.vb)
-- [DataClimClass.vb](/mnt/d/docs/amei_workshop/sensitivity_analysis_outputs/CelsiusCli/Converted/DataClimClass.vb)
-- [Functions.vb](/mnt/d/docs/amei_workshop/sensitivity_analysis_outputs/CelsiusCli/Converted/Functions.vb)
+- [SimulationControlClass.vb](../Converted/SimulationControlClass.vb)
+- [PLanteClass.vb](../Converted/PLanteClass.vb)
+- [CultureClass.vb](../Converted/CultureClass.vb)
+- [MulchClass.vb](../Converted/MulchClass.vb)
+- [SolClass.vb](../Converted/SolClass.vb)
+- [DataClimClass.vb](../Converted/DataClimClass.vb)
+- [Functions.vb](../Converted/Functions.vb)
 
 ## 1. Scope and conventions
 
@@ -51,7 +57,7 @@ Inputs -> Initialization -> Daily loop -> Outputs
 
 ### 3.1 Mean air temperature
 
-From [DataClimClass.vb](/mnt/d/docs/amei_workshop/sensitivity_analysis_outputs/CelsiusCli/Converted/DataClimClass.vb):
+From [DataClimClass.vb](../Converted/DataClimClass.vb):
 
 ```text
 Tmoy_j = (Tmin_j + Tmax_j) / 2
@@ -106,7 +112,7 @@ where `I_bissextile = 1` for leap years and `0` otherwise.
 
 ### 5.1 Thermal time for emergence
 
-From [PLanteClass.vb](/mnt/d/docs/amei_workshop/sensitivity_analysis_outputs/CelsiusCli/Converted/PLanteClass.vb):
+From [PLanteClass.vb](../Converted/PLanteClass.vb):
 
 ```text
 HUleve_j = max(Tmoy_j - Tger_i, 0)
@@ -415,7 +421,10 @@ The implemented formulation therefore allows strong post-flowering stress to sha
 
 ### 10.1 CO2 effect
 
-The CO2 correction factor is:
+V32 initializes atmospheric CO₂ from `ListPAnnexes.CO2c`, then looks up the
+simulation year in `CO2Yearly`. When that year is found, its `CO2` value
+replaces the mean value; otherwise the model retains the `ListPAnnexes`
+fallback. The crop response then uses the following correction factor:
 
 ```text
 FCO2_i = 2 - exp( ln(2 - alphaCO2_i) * (CO2c - 350) / (600 - 350) )
@@ -1221,7 +1230,9 @@ Several equations above come directly from code comments or legacy branches and 
 The main caveats are:
 
 - `MinNorgapporteStics` is explicitly marked unfinished.
-- `ListResidus` input is missing in the provided database.
+- `ListResidus` is a required V32 input for the applied-residue branch and is
+  included in the V32 export/build pipeline; this does not remove the need to
+  validate the unfinished mineralization formulation.
 - Soil layering is only partly represented; the actual water balance behaves mostly like a lumped bucket model.
 - Soil temperature is approximated by air temperature.
 - The crop mixture competition routine is acknowledged in comments as needing further checking.
@@ -1231,11 +1242,11 @@ The main caveats are:
 
 For process-level understanding, read in this order:
 
-1. [SimulationControlClass.vb](/mnt/d/docs/amei_workshop/sensitivity_analysis_outputs/CelsiusCli/Converted/SimulationControlClass.vb)
-2. [PLanteClass.vb](/mnt/d/docs/amei_workshop/sensitivity_analysis_outputs/CelsiusCli/Converted/PLanteClass.vb)
-3. [CultureClass.vb](/mnt/d/docs/amei_workshop/sensitivity_analysis_outputs/CelsiusCli/Converted/CultureClass.vb)
-4. [MulchClass.vb](/mnt/d/docs/amei_workshop/sensitivity_analysis_outputs/CelsiusCli/Converted/MulchClass.vb)
-5. [SolClass.vb](/mnt/d/docs/amei_workshop/sensitivity_analysis_outputs/CelsiusCli/Converted/SolClass.vb)
-6. [DataClimClass.vb](/mnt/d/docs/amei_workshop/sensitivity_analysis_outputs/CelsiusCli/Converted/DataClimClass.vb)
+1. [SimulationControlClass.vb](../Converted/SimulationControlClass.vb)
+2. [PLanteClass.vb](../Converted/PLanteClass.vb)
+3. [CultureClass.vb](../Converted/CultureClass.vb)
+4. [MulchClass.vb](../Converted/MulchClass.vb)
+5. [SolClass.vb](../Converted/SolClass.vb)
+6. [DataClimClass.vb](../Converted/DataClimClass.vb)
 
 This is the closest thing to an executable scientific specification of the current model.

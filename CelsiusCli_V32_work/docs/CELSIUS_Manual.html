@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>CELSIUS Soil-Crop Model Manual</title>
+  <title>CELSIUS V32 Soil-Crop Model Manual</title>
   <style>
     :root {
       --bg: #f8f6f1;
@@ -301,11 +301,17 @@
 
     <main>
       <header class="hero">
-        <div class="eyebrow">CELSIUS Technical Manual</div>
-        <h1>CELSIUS Soil-Crop-Mulch Model Manual</h1>
+        <div class="eyebrow">CELSIUS V32 Technical Manual</div>
+        <h1>CELSIUS V32 Soil-Crop-Mulch Model Manual</h1>
         <p class="lead">
-          This document reformulates the current CELSIUS implementation as a process manual in the spirit of a model reference document. The equations are inferred from the code, organized by process, and linked to the governing methods and the database tables that feed each block.
+          This document reformulates the CELSIUS V32 implementation as a process manual in the spirit of a model reference document. The equations are inferred from the generated VB.NET code, organized by process, and linked to the governing methods and the database tables that feed each block.
         </p>
+        <div class="note">
+          <strong>V32 revision — September 2026.</strong> This manual is tied to
+          <code>CelsiusCli_V32_work</code> and to the Access/VBA sources in
+          <code>celsius_audit_new/access_objects</code>. It describes the
+          implementation and is not an independent formal specification.
+        </div>
         <div class="meta">
           <div class="card">
             <strong>Primary Control Flow</strong>
@@ -330,7 +336,7 @@
         <div class="summary-grid">
           <div class="card">
             <span class="label">Main Runtime</span>
-            <div><code>CelsiusRuntime.vb</code>, <code>PrincipalRunner.Run</code>, <code>SimulationControlClass.vb:28-197</code></div>
+            <div><code>CelsiusRuntime.vb</code>, <code>PrincipalRunner.Run</code>, <code>SimulationControlClass.vb-197</code></div>
           </div>
           <div class="card">
             <span class="label">Main Input Selection Table</span>
@@ -411,7 +417,7 @@ DAP_j = StartDay - iplt_1 + j - 1</div>
             <tbody>
               <tr>
                 <td>Climate forcing and calendar construction</td>
-                <td><code>DataClimClass.LisClimD</code> [DataClimClass.vb](/mnt/d/docs/amei_workshop/sensitivity_analysis_outputs/CelsiusCli/Converted/DataClimClass.vb:26), lines 26-107; <code>update_DAP</code> lines 108-117; <code>CorrigTAlt</code> lines 118-126; <code>LenDay</code> lines 138-150</td>
+                <td><code>DataClimClass.LisClimD</code> <a href="../Converted/DataClimClass.vb">DataClimClass.vb</a>; <code>update_DAP</code>; <code>CorrigTAlt</code>; <code>LenDay</code></td>
                 <td><code>SimUnitList</code>, <code>ListPAnnexes</code>, <code>Dweather</code>, <code>Tech_perCrop</code></td>
                 <td><code>Tmin</code>, <code>Tmax</code>, <code>Tmoy</code>, <code>Rg</code>, <code>Etp</code>, <code>Plu</code>, <code>DAYL</code>, <code>DAP</code></td>
               </tr>
@@ -454,7 +460,7 @@ DVR stage-specific, with photoperiod acting during stage 2</div>
             <tbody>
               <tr>
                 <td>Crop establishment, emergence, phenology</td>
-                <td><code>SimulationControlClass.Simulation</code> lines 123-165; <code>PLanteClass.HUleve</code> lines 263-271; <code>GerminLevee</code> lines 272-293; <code>phenoCTphot</code> lines 302-388; <code>pheno_sigmaT</code> lines 389-477</td>
+                <td><code>SimulationControlClass.Simulation</code>; <code>PLanteClass.HUleve</code>; <code>GerminLevee</code>; <code>phenoCTphot</code>; <code>pheno_sigmaT</code></td>
                 <td><code>Tech_perCrop</code>, <code>OptionsModel</code>, <code>Cultivars</code>, <code>PlantSpecies</code>, <code>StadePheno</code>, <code>Dweather</code></td>
                 <td><code>TSlevee</code>, <code>TS</code>, <code>DVS</code>, <code>DVSt</code>, <code>Currstge</code>, <code>JulPheno</code>, <code>cropsta</code>, <code>Death_day</code></td>
               </tr>
@@ -500,7 +506,7 @@ dLAISen_i,j = [dLAISen_base - SensiSen_i * (1 - Turfac_i,j) * LAI_i,j-1] * (DVSt
             <tbody>
               <tr>
                 <td>Leaf expansion, water and N reduction, inter-crop light competition</td>
-                <td><code>stressAzoteOld</code> lines 294-301; <code>stressAzote</code> lines 478-501; <code>Calcule_LAI</code> lines 502-602; <code>Calcule_LAI_SemiAride</code> lines 603-711; <code>deltaidens</code> lines 800-807</td>
+                <td><code>stressAzoteOld</code>; <code>stressAzote</code>; <code>Calcule_LAI</code>; <code>Calcule_LAI_SemiAride</code>; <code>deltaidens</code></td>
                 <td><code>General_Parameters</code>, <code>Cultivars</code>, <code>PlantSpecies</code>, <code>OptionsModel</code>, <code>FertiMin_List</code>, <code>FertiOrga_List</code>, <code>Soil</code></td>
                 <td><code>Lai</code>, <code>LAIpot</code>, <code>Turfac</code>, <code>TurfacH</code>, <code>CompFac</code>, <code>Competition</code>, <code>NRF</code>, <code>NUPTtarget</code></td>
               </tr>
@@ -547,7 +553,7 @@ Grain_i,j = min(Biom_i,j * IR_i,j, P1grainMax_i * Ngrains_i / 100)</div>
             <tbody>
               <tr>
                 <td>Biomass formation and grain production</td>
-                <td><code>PLanteClass.biomasse</code> [PLanteClass.vb](/mnt/d/docs/amei_workshop/sensitivity_analysis_outputs/CelsiusCli/Converted/PLanteClass.vb:712), lines 712-749; <code>Rendement</code> lines 750-779; <code>FCO2</code> lines 796-799</td>
+                <td><code>PLanteClass.biomasse</code> <a href="../Converted/PLanteClass.vb">PLanteClass.vb</a>; <code>Rendement</code>; <code>FCO2</code></td>
                 <td><code>General_Parameters</code>, <code>Cultivars</code>, <code>PlantSpecies</code>, <code>ListPAnnexes</code>, <code>Dweather</code></td>
                 <td><code>deltaBiom</code>, <code>Biom</code>, <code>Nuptake</code>, <code>Ngrains</code>, <code>IR</code>, <code>Grain</code>, <code>P1grain</code>, <code>Vitmoy</code></td>
               </tr>
@@ -583,7 +589,7 @@ TranspiMC_j = TPotMC_j * WStressTMC_j</div>
             <tbody>
               <tr>
                 <td>Mixed-canopy aggregation and transpiration</td>
-                <td><code>CultureClass.InitMixedCanopy</code> [CultureClass.vb](/mnt/d/docs/amei_workshop/sensitivity_analysis_outputs/CelsiusCli/Converted/CultureClass.vb:44), lines 44-52; <code>LaiMixedCanopy</code> lines 53-57; <code>CroiRacMixedCrop</code> lines 58-61; <code>Evaporation_Pot_SolMulch</code> lines 62-65; <code>CalcTranspiMC</code> lines 66-86</td>
+                <td><code>CultureClass.InitMixedCanopy</code> <a href="../Converted/CultureClass.vb">CultureClass.vb</a>; <code>LaiMixedCanopy</code>; <code>CroiRacMixedCrop</code>; <code>Evaporation_Pot_SolMulch</code>; <code>CalcTranspiMC</code></td>
                 <td><code>PlantSpecies</code>, <code>Cultivars</code>, <code>Dweather</code></td>
                 <td><code>LaiMC</code>, <code>ZRacineMC</code>, <code>EoSM</code>, <code>TPotMC</code>, <code>TranspiMC</code>, <code>SigmaTranspiMC</code></td>
               </tr>
@@ -630,7 +636,7 @@ IKJ_j+1 = (IKJ_j + precip_j) * exp(-0.5)</div>
             <tbody>
               <tr>
                 <td>Mulch decomposition, interception, runoff, observed runoff forcing</td>
-                <td><code>MulchClass.LisMulch</code> [MulchClass.vb](/mnt/d/docs/amei_workshop/sensitivity_analysis_outputs/CelsiusCli/Converted/MulchClass.vb:26), lines 26-44; <code>LisRuiObs</code> lines 45-94; <code>BiomasseMulch</code> lines 95-99; <code>BilanMulch</code> lines 100-158; <code>Ruissellement</code> lines 159-195</td>
+                <td><code>MulchClass.LisMulch</code> <a href="../Converted/MulchClass.vb">MulchClass.vb</a>; <code>LisRuiObs</code>; <code>BiomasseMulch</code>; <code>BilanMulch</code>; <code>Ruissellement</code></td>
                 <td><code>Mulch</code>, <code>RuissellementObs</code>, <code>TypeSurfSol</code>, <code>Tech_Commun</code>, <code>Dweather</code>, <code>Irrigation_List</code></td>
                 <td><code>Qpaillis</code>, <code>FracSoilCover</code>, <code>Smulch</code>, <code>Emulch</code>, <code>Ruis</code>, <code>EauVersSol</code>, <code>IKJ</code></td>
               </tr>
@@ -681,7 +687,7 @@ ContrainteW_j = 1                          otherwise</div>
             <tbody>
               <tr>
                 <td>Soil capacity derivation, evaporation, bucket redistribution, drainage, wilting signal</td>
-                <td><code>SolClass.LisSol</code> [SolClass.vb](/mnt/d/docs/amei_workshop/sensitivity_analysis_outputs/CelsiusCli/Converted/SolClass.vb:92), lines 92-171; <code>initsol</code> lines 172-218; <code>evaporation</code> lines 219-237; <code>EauSol</code> lines 396-524</td>
+                <td><code>SolClass.LisSol</code> <a href="../Converted/SolClass.vb">SolClass.vb</a>; <code>initsol</code>; <code>evaporation</code>; <code>EauSol</code></td>
                 <td><code>Soil</code>, <code>Soil_layers</code>, <code>ParamIni</code>, <code>TypeSurfSol</code>, <code>Dweather</code></td>
                 <td><code>TAW</code>, <code>TEW</code>, <code>Stsurf</code>, <code>Strac</code>, <code>Stnonrac</code>, <code>Stprofond</code>, <code>Dr</code>, <code>Drprofmax</code>, <code>ContrainteW</code>, <code>SignalFletrissement</code></td>
               </tr>
@@ -733,7 +739,7 @@ SignalFletrissement_j = 0                             otherwise</div>
             <tbody>
               <tr>
                 <td>Hydric controls propagated from soil to crop functioning</td>
-                <td><code>SolClass.EauSol</code> [SolClass.vb](/mnt/d/docs/amei_workshop/sensitivity_analysis_outputs/CelsiusCli/Converted/SolClass.vb:396), lines 396-524; <code>PLanteClass.GerminLevee</code> [PLanteClass.vb](/mnt/d/docs/amei_workshop/sensitivity_analysis_outputs/CelsiusCli/Converted/PLanteClass.vb:272), lines 272-293; <code>Calcule_LAI_SemiAride</code> lines 603-711; <code>biomasse</code> lines 712-749; <code>CultureClass.CalcTranspiMC</code> [CultureClass.vb](/mnt/d/docs/amei_workshop/sensitivity_analysis_outputs/CelsiusCli/Converted/CultureClass.vb:66), lines 66-86; <code>phenoCTphot</code> lines 302-388; <code>pheno_sigmaT</code> lines 389-477</td>
+                <td><code>SolClass.EauSol</code> <a href="../Converted/SolClass.vb">SolClass.vb</a>; <code>PLanteClass.GerminLevee</code> <a href="../Converted/PLanteClass.vb">PLanteClass.vb</a>; <code>Calcule_LAI_SemiAride</code>; <code>biomasse</code>; <code>CultureClass.CalcTranspiMC</code> <a href="../Converted/CultureClass.vb">CultureClass.vb</a>; <code>phenoCTphot</code>; <code>pheno_sigmaT</code></td>
                 <td><code>Soil</code>, <code>Soil_layers</code>, <code>ParamIni</code>, <code>PlantSpecies</code>, <code>Cultivars</code>, <code>OptionsModel</code>, <code>Dweather</code></td>
                 <td><code>ContrainteWSurf</code>, <code>ContrainteW</code>, <code>ContrainteHlevee</code>, <code>TurfacH</code>, <code>WSfactH</code>, <code>WStressTMC</code>, <code>SignalFletrissement</code></td>
               </tr>
@@ -842,14 +848,14 @@ perteNDrain_j = ConcNsol_j-1 * Dr_j</div>
             <tbody>
               <tr>
                 <td>Daily N mineralization, denitrification, fertilizer accounting, drainage loss</td>
-                <td><code>SimulationControlClass.Simulation</code> lines 186-193 activates the daily N branch; <code>SolClass.TempSoil</code> lines 238-241; <code>MinNorgSS</code> lines 242-270; <code>DenitNavail</code> lines 271-289; <code>MinNorgapporteStics</code> lines 317-365; <code>StockNavail</code> lines 366-381; <code>ConcNEauSol</code> lines 382-395</td>
-                <td><code>Soil</code>, <code>FertiMin_List</code>, <code>FertiOrga_List</code>, <code>ListPAnnexes</code>, <code>Dweather</code>, <code>ListResidus</code> (expected but missing in provided database)</td>
+                <td><code>SimulationControlClass.Simulation</code> activates the daily N branch; <code>SolClass.TempSoil</code>; <code>MinNorgSS</code>; <code>DenitNavail</code>; <code>MinNorgapporteStics</code>; <code>StockNavail</code>; <code>ConcNEauSol</code></td>
+                <td><code>Soil</code>, <code>FertiMin_List</code>, <code>FertiOrga_List</code>, <code>ListPAnnexes</code>, <code>Dweather</code>, <code>ListResidus</code> (included in the V32 input schema)</td>
                 <td><code>Nhum</code>, <code>Nmin</code>, <code>NDenit</code>, <code>DNMinOrg</code>, <code>Navail</code>, <code>ConcNsol</code>, <code>perteNDrain</code></td>
               </tr>
             </tbody>
           </table>
           <div class="flow">
-            <div class="node tables"><h4>Database Inputs</h4><div><code>Soil</code><br><code>FertiMin_List</code><br><code>FertiOrga_List</code><br><code>ListPAnnexes</code><br><code>Dweather</code><br><code>ListResidus</code> expected</div></div>
+            <div class="node tables"><h4>Database Inputs</h4><div><code>Soil</code><br><code>FertiMin_List</code><br><code>FertiOrga_List</code><br><code>ListPAnnexes</code><br><code>Dweather</code><br><code>ListResidus</code></div></div>
             <div class="node code"><h4>Governing Code</h4><div><code>MinNorgSS</code><br><code>DenitNavail</code><br><code>MinNorgapporteStics</code><br><code>StockNavail</code><br><code>ConcNEauSol</code></div></div>
             <div class="node states"><h4>States and Outputs</h4><div>Available N, solution N concentration, drainage losses, N stress feedback to crops</div></div>
           </div>
@@ -877,7 +883,7 @@ perteNDrain_j = ConcNsol_j-1 * Dr_j</div>
             <tr><td><code>Etp</code></td><td>Reference evapotranspiration forcing</td><td>mm d^-1</td><td><code>Dweather</code></td><td><code>DataClimClass</code></td></tr>
             <tr><td><code>Plu</code></td><td>Daily rainfall</td><td>mm d^-1</td><td><code>Dweather</code></td><td><code>DataClimClass</code></td></tr>
             <tr><td><code>DAYL</code></td><td>Astronomical day length</td><td>h</td><td><code>ListPAnnexes</code>, <code>Dweather</code></td><td><code>DataClimClass</code></td></tr>
-            <tr><td><code>CO2c</code></td><td>Atmospheric CO2 concentration</td><td>ppm</td><td><code>ListPAnnexes</code></td><td><code>DataClimClass</code></td></tr>
+            <tr><td><code>CO2c</code></td><td>Atmospheric CO2 concentration; yearly value when available, otherwise the station mean</td><td>ppm</td><td><code>CO2Yearly</code>, fallback <code>ListPAnnexes</code></td><td><code>DataClimClass</code></td></tr>
             <tr><td><code>ConcNplu</code></td><td>N concentration in rainfall</td><td>database convention</td><td><code>ListPAnnexes</code></td><td><code>DataClimClass</code></td></tr>
             <tr><td><code>StartDay</code>, <code>EndDay</code>, <code>NbJourSimul</code></td><td>Simulation calendar</td><td>day index</td><td><code>SimUnitList</code></td><td><code>SimulationUnitClass</code></td></tr>
             <tr><td><code>iplt</code>, <code>irepiqu</code>, <code>ilev</code></td><td>Sowing, transplanting, and emergence dates</td><td>DOY</td><td><code>Tech_perCrop</code></td><td><code>GestionTechniqueClass</code></td></tr>
@@ -995,15 +1001,15 @@ perteNDrain_j = ConcNsol_j-1 * Dr_j</div>
             </tr>
           </thead>
           <tbody>
-            <tr><td>Climate and calendar</td><td><code>ReadParameters</code> lines 49-76</td><td><code>DataClimClass</code> climate loaders and transformations</td><td><code>SimUnitList</code>, <code>ListPAnnexes</code>, <code>Dweather</code>, <code>Tech_perCrop</code></td><td>Daily forcing arrays</td></tr>
-            <tr><td>Establishment and phenology</td><td><code>Simulation</code> lines 123-159</td><td><code>GerminLevee</code>, <code>phenoCTphot</code>, <code>pheno_sigmaT</code></td><td><code>Tech_perCrop</code>, <code>OptionsModel</code>, <code>Cultivars</code>, <code>PlantSpecies</code>, <code>StadePheno</code></td><td><code>cropsta</code>, <code>Currstge</code>, <code>JulPheno</code></td></tr>
-            <tr><td>LAI and crop stress</td><td><code>Simulation</code> lines 152-163</td><td><code>stressAzote*</code>, <code>Calcule_LAI_SemiAride</code></td><td><code>General_Parameters</code>, <code>PlantSpecies</code>, <code>Ferti*</code>, <code>Soil</code></td><td><code>Lai</code>, <code>Turfac</code>, <code>CompFac</code></td></tr>
-            <tr><td>Biomass and yield</td><td><code>Simulation</code> lines 163-165</td><td><code>biomasse</code>, <code>Rendement</code></td><td><code>General_Parameters</code>, <code>PlantSpecies</code>, <code>Cultivars</code>, <code>Dweather</code>, <code>ListPAnnexes</code></td><td><code>Biom</code>, <code>Grain</code>, <code>Ngrains</code></td></tr>
-            <tr><td>Mixed canopy</td><td><code>Simulation</code> lines 166-184</td><td><code>CultureClass</code> aggregation and transpiration routines</td><td><code>Dweather</code>, crop states</td><td><code>LaiMC</code>, <code>TranspiMC</code></td></tr>
-            <tr><td>Mulch and runoff</td><td><code>Simulation</code> lines 175-179</td><td><code>BiomasseMulch</code>, <code>Ruissellement</code>, <code>BilanMulch</code></td><td><code>Mulch</code>, <code>TypeSurfSol</code>, <code>RuissellementObs</code>, <code>Irrigation_List</code>, <code>Dweather</code></td><td><code>Emulch</code>, <code>Ruis</code>, <code>EauVersSol</code></td></tr>
-            <tr><td>Soil water balance</td><td><code>Simulation</code> lines 180-184</td><td><code>evaporation</code>, <code>EauSol</code></td><td><code>Soil</code>, <code>Soil_layers</code>, <code>ParamIni</code>, climate and canopy states</td><td><code>Stsurf</code>, <code>Strac</code>, <code>Dr</code>, <code>ContrainteW</code></td></tr>
-            <tr><td>Water stress pathways</td><td><code>Simulation</code> lines 144-184</td><td><code>GerminLevee</code>, <code>Calcule_LAI_SemiAride</code>, <code>biomasse</code>, <code>CalcTranspiMC</code>, <code>phenoCTphot</code>, <code>EauSol</code></td><td><code>Soil</code>, <code>Soil_layers</code>, <code>ParamIni</code>, <code>PlantSpecies</code>, <code>Cultivars</code>, <code>OptionsModel</code>, <code>Dweather</code></td><td><code>ContrainteHlevee</code>, <code>TurfacH</code>, <code>WSfactH</code>, <code>WStressTMC</code>, <code>SignalFletrissement</code></td></tr>
-            <tr><td>Soil nitrogen balance</td><td><code>Simulation</code> lines 186-193</td><td><code>MinNorgSS</code>, <code>DenitNavail</code>, <code>MinNorgapporteStics</code>, <code>StockNavail</code>, <code>ConcNEauSol</code></td><td><code>Soil</code>, <code>FertiMin_List</code>, <code>FertiOrga_List</code>, <code>ListPAnnexes</code>, <code>ListResidus</code> expected</td><td><code>Navail</code>, <code>ConcNsol</code>, <code>perteNDrain</code></td></tr>
+            <tr><td>Climate and calendar</td><td><code>ReadParameters</code></td><td><code>DataClimClass</code> climate loaders and transformations</td><td><code>SimUnitList</code>, <code>ListPAnnexes</code>, <code>Dweather</code>, <code>Tech_perCrop</code></td><td>Daily forcing arrays</td></tr>
+            <tr><td>Establishment and phenology</td><td><code>Simulation</code></td><td><code>GerminLevee</code>, <code>phenoCTphot</code>, <code>pheno_sigmaT</code></td><td><code>Tech_perCrop</code>, <code>OptionsModel</code>, <code>Cultivars</code>, <code>PlantSpecies</code>, <code>StadePheno</code></td><td><code>cropsta</code>, <code>Currstge</code>, <code>JulPheno</code></td></tr>
+            <tr><td>LAI and crop stress</td><td><code>Simulation</code></td><td><code>stressAzote*</code>, <code>Calcule_LAI_SemiAride</code></td><td><code>General_Parameters</code>, <code>PlantSpecies</code>, <code>Ferti*</code>, <code>Soil</code></td><td><code>Lai</code>, <code>Turfac</code>, <code>CompFac</code></td></tr>
+            <tr><td>Biomass and yield</td><td><code>Simulation</code></td><td><code>biomasse</code>, <code>Rendement</code></td><td><code>General_Parameters</code>, <code>PlantSpecies</code>, <code>Cultivars</code>, <code>Dweather</code>, <code>ListPAnnexes</code></td><td><code>Biom</code>, <code>Grain</code>, <code>Ngrains</code></td></tr>
+            <tr><td>Mixed canopy</td><td><code>Simulation</code></td><td><code>CultureClass</code> aggregation and transpiration routines</td><td><code>Dweather</code>, crop states</td><td><code>LaiMC</code>, <code>TranspiMC</code></td></tr>
+            <tr><td>Mulch and runoff</td><td><code>Simulation</code></td><td><code>BiomasseMulch</code>, <code>Ruissellement</code>, <code>BilanMulch</code></td><td><code>Mulch</code>, <code>TypeSurfSol</code>, <code>RuissellementObs</code>, <code>Irrigation_List</code>, <code>Dweather</code></td><td><code>Emulch</code>, <code>Ruis</code>, <code>EauVersSol</code></td></tr>
+            <tr><td>Soil water balance</td><td><code>Simulation</code></td><td><code>evaporation</code>, <code>EauSol</code></td><td><code>Soil</code>, <code>Soil_layers</code>, <code>ParamIni</code>, climate and canopy states</td><td><code>Stsurf</code>, <code>Strac</code>, <code>Dr</code>, <code>ContrainteW</code></td></tr>
+            <tr><td>Water stress pathways</td><td><code>Simulation</code></td><td><code>GerminLevee</code>, <code>Calcule_LAI_SemiAride</code>, <code>biomasse</code>, <code>CalcTranspiMC</code>, <code>phenoCTphot</code>, <code>EauSol</code></td><td><code>Soil</code>, <code>Soil_layers</code>, <code>ParamIni</code>, <code>PlantSpecies</code>, <code>Cultivars</code>, <code>OptionsModel</code>, <code>Dweather</code></td><td><code>ContrainteHlevee</code>, <code>TurfacH</code>, <code>WSfactH</code>, <code>WStressTMC</code>, <code>SignalFletrissement</code></td></tr>
+            <tr><td>Soil nitrogen balance</td><td><code>Simulation</code></td><td><code>MinNorgSS</code>, <code>DenitNavail</code>, <code>MinNorgapporteStics</code>, <code>StockNavail</code>, <code>ConcNEauSol</code></td><td><code>Soil</code>, <code>FertiMin_List</code>, <code>FertiOrga_List</code>, <code>ListPAnnexes</code>, <code>ListResidus</code></td><td><code>Navail</code>, <code>ConcNsol</code>, <code>perteNDrain</code></td></tr>
           </tbody>
         </table>
       </section>
@@ -1011,17 +1017,18 @@ perteNDrain_j = ConcNsol_j-1 * Dr_j</div>
       <section id="caveats">
         <h2>5. Caveats</h2>
         <div class="note">
-          <strong>Interpretation status.</strong> This manual is derived from the current implementation. It is intentionally close to the code, not to an idealized formulation.
+          <strong>Interpretation status.</strong> This V32 revision is derived from the generated VB.NET implementation and the matching VBA export. It is intentionally close to the code, not to an idealized formulation.
         </div>
         <ul class="tight">
-          <li>The organic matter mineralization routine for applied residues, <code>MinNorgapporteStics</code>, is marked unfinished in comments and depends on residue parameters expected from <code>ListResidus</code>, which is absent from the provided database.</li>
+          <li>The organic matter mineralization routine for applied residues, <code>MinNorgapporteStics</code>, is marked unfinished in comments. V32 supplies residue parameters through <code>ListResidus</code>, but the formulation still requires scientific validation.</li>
+          <li>V32 reads mean atmospheric CO₂ from <code>ListPAnnexes</code> and replaces it with the matching simulation-year value from <code>CO2Yearly</code> when available; crop response is calculated by the existing <code>FCO2</code> formulation.</li>
           <li>The soil water model behaves mainly as a bucket formulation even though a layered schema exists in the database.</li>
           <li>Soil temperature in the N module is currently approximated by mean air temperature.</li>
           <li>The competition logic for mixed canopies is implemented but acknowledged in comments as needing cautious validation.</li>
           <li>Recursive multi-simulation behavior exists in the controller but is only partially operational in the current port.</li>
         </ul>
         <p class="small">
-          Companion files: [CELSIUS_Model_Overview.md](/mnt/d/docs/amei_workshop/sensitivity_analysis_outputs/CelsiusCli/docs/CELSIUS_Model_Overview.md) and [CELSIUS_Process_Equations.md](/mnt/d/docs/amei_workshop/sensitivity_analysis_outputs/CelsiusCli/docs/CELSIUS_Process_Equations.md).
+          Companion files: <a href="CELSIUS_Model_Overview.md">CELSIUS_Model_Overview.md</a> and <a href="CELSIUS_Process_Equations.md">CELSIUS_Process_Equations.md</a>.
         </p>
       </section>
     </main>

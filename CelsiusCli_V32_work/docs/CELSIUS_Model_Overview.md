@@ -1,12 +1,17 @@
-# CELSIUS Model Overview
+# CELSIUS V32 Model Overview
 
-This document explains the model from the execution flow in the main program and the main simulation controller. It is meant to help someone read the code as a system, not just as isolated classes.
+This document explains CELSIUS V32 from the execution flow in the main program and the main simulation controller. It is meant to help someone read the code as a system, not just as isolated classes.
+
+> **V32 revision status (September 2026).** This revision is tied to the
+> sources in `CelsiusCli_V32_work` and to the Access/VBA export in
+> `celsius_audit_new/access_objects`. The scientific descriptions remain
+> implementation-oriented rather than an independent formal specification.
 
 The description below is based mainly on:
 
-- [CelsiusRuntime.vb](/mnt/d/docs/amei_workshop/sensitivity_analysis_outputs/CelsiusCli/CelsiusRuntime.vb)
-- [Principal.bas](/mnt/d/docs/amei_workshop/sensitivity_analysis_outputs/celsius_access_export/Principal.bas)
-- [SimulationControlClass.vb](/mnt/d/docs/amei_workshop/sensitivity_analysis_outputs/CelsiusCli/Converted/SimulationControlClass.vb)
+- [CelsiusRuntime.vb](../CelsiusRuntime.vb)
+- [Principal.bas](../../celsius_audit_new/access_objects/Principal.bas)
+- [SimulationControlClass.vb](../Converted/SimulationControlClass.vb)
 
 ## 1. What CELSIUS does
 
@@ -32,7 +37,7 @@ The main simulation object is `SimulationControlClass`. It orchestrates the othe
 
 ### 2.1 CLI / runtime entry
 
-The .NET CLI entry point is [Program.vb](/mnt/d/docs/amei_workshop/sensitivity_analysis_outputs/CelsiusCli/Program.vb). It passes the SQLite database path to `CelsiusRuntime.Run`.
+The .NET CLI entry point is [Program.vb](../Program.vb). It passes the SQLite database path to `CelsiusRuntime.Run`.
 
 `CelsiusRuntime.Run`:
 
@@ -40,7 +45,7 @@ The .NET CLI entry point is [Program.vb](/mnt/d/docs/amei_workshop/sensitivity_a
 2. ensures output tables exist
 3. hands control to `PrincipalRunner.Run`
 
-This is the VB .NET equivalent of the original Access VBA `Principal()` procedure in [Principal.bas](/mnt/d/docs/amei_workshop/sensitivity_analysis_outputs/celsius_access_export/Principal.bas).
+This is the VB .NET equivalent of the original Access VBA `Principal()` procedure in [Principal.bas](../../celsius_audit_new/access_objects/Principal.bas).
 
 ### 2.2 Principal runner
 
@@ -191,8 +196,10 @@ If organic fertilization is active and `TypeMorga <> "indetermine"`, then `Appor
 Important caveat:
 
 - `ApportsOrgaClass` expects a `ListResidus` table
-- this dependency is not present in the provided database
-- the path is therefore only safe if that branch is not triggered or the missing source is restored
+- `ListResidus` is part of the V32 input schema and is exported by
+  `celsius_pipeline_v32`
+- a V32 input database must therefore provide this table when the organic
+  residue branch is enabled
 
 ### 4.7 Plant, soil, and mulch parameterization
 
@@ -458,24 +465,30 @@ Together, these switches decide which submodels are active and which input table
 
 If you want to understand the model without getting lost, read in this order:
 
-1. [CelsiusRuntime.vb](/mnt/d/docs/amei_workshop/sensitivity_analysis_outputs/CelsiusCli/CelsiusRuntime.vb)
-2. [Principal.bas](/mnt/d/docs/amei_workshop/sensitivity_analysis_outputs/celsius_access_export/Principal.bas)
-3. [SimulationControlClass.vb](/mnt/d/docs/amei_workshop/sensitivity_analysis_outputs/CelsiusCli/Converted/SimulationControlClass.vb)
-4. [SimulationUnitClass.vb](/mnt/d/docs/amei_workshop/sensitivity_analysis_outputs/CelsiusCli/Converted/SimulationUnitClass.vb)
-5. [OptionsModelClass.vb](/mnt/d/docs/amei_workshop/sensitivity_analysis_outputs/CelsiusCli/Converted/OptionsModelClass.vb)
-6. [GestionTechniqueClass.vb](/mnt/d/docs/amei_workshop/sensitivity_analysis_outputs/CelsiusCli/Converted/GestionTechniqueClass.vb)
-7. [DataClimClass.vb](/mnt/d/docs/amei_workshop/sensitivity_analysis_outputs/CelsiusCli/Converted/DataClimClass.vb)
-8. [PLanteClass.vb](/mnt/d/docs/amei_workshop/sensitivity_analysis_outputs/CelsiusCli/Converted/PLanteClass.vb)
-9. [CultureClass.vb](/mnt/d/docs/amei_workshop/sensitivity_analysis_outputs/CelsiusCli/Converted/CultureClass.vb)
-10. [MulchClass.vb](/mnt/d/docs/amei_workshop/sensitivity_analysis_outputs/CelsiusCli/Converted/MulchClass.vb)
-11. [SolClass.vb](/mnt/d/docs/amei_workshop/sensitivity_analysis_outputs/CelsiusCli/Converted/SolClass.vb)
+1. [CelsiusRuntime.vb](../CelsiusRuntime.vb)
+2. [Principal.bas](../../celsius_audit_new/access_objects/Principal.bas)
+3. [SimulationControlClass.vb](../Converted/SimulationControlClass.vb)
+4. [SimulationUnitClass.vb](../Converted/SimulationUnitClass.vb)
+5. [OptionsModelClass.vb](../Converted/OptionsModelClass.vb)
+6. [GestionTechniqueClass.vb](../Converted/GestionTechniqueClass.vb)
+7. [DataClimClass.vb](../Converted/DataClimClass.vb)
+8. [PLanteClass.vb](../Converted/PLanteClass.vb)
+9. [CultureClass.vb](../Converted/CultureClass.vb)
+10. [MulchClass.vb](../Converted/MulchClass.vb)
+11. [SolClass.vb](../Converted/SolClass.vb)
 
 This order follows the actual control flow.
 
 ## 11. Current Caveats
 
 - The current .NET port still keeps some VBA-era patterns and compatibility layers.
-- Organic residue parameterization via `ListResidus` is unresolved in the provided database.
+- Applied-residue mineralization in `MinNorgapporteStics` is still marked as
+  unfinished in the inherited scientific code; V32 supplies its parameters
+  through `ListResidus`, but the formulation still requires validation.
+- V32 first reads the mean atmospheric CO₂ value from `ListPAnnexes`, then
+  replaces it with the matching simulation-year value from `CO2Yearly` when
+  available; the crop-level response is applied through the existing `FCO2`
+  calculation.
 - The model is written for up to two crops in association in many parts of the code.
 - Several comments in the original code indicate unfinished or weakly tested branches, especially around recursive mode and some multi-layer soil logic.
 
