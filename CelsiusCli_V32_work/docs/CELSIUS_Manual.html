@@ -521,7 +521,27 @@ dLAISen_i,j = [dLAISen_base - SensiSen_i * (1 - Turfac_i,j) * LAI_i,j-1] * (DVSt
 
         <section id="block-biomass">
           <h3>2.4 Biomass, CO2 Response, and Grain Yield</h3>
+          <p>
+            V32 first reads a station-level fallback concentration from
+            <code>ListPAnnexes.CO2c</code>. When <code>Codcc = "0"</code>, it
+            searches <code>CO2Yearly</code> for the simulation start year and
+            uses that annual value; if the year is absent, it keeps the
+            fallback and writes a warning. When <code>Codcc &lt;&gt; "0"</code>,
+            the yearly lookup is skipped.
+          </p>
+          <div class="note">
+            <strong>Spatial and temporal scope.</strong>
+            <code>CO2Yearly</code> is indexed by year only and has no
+            <code>idDclim</code>. Its value is therefore identical for every
+            site with the same start year. The lookup occurs once during
+            initialization and is not refreshed during a multi-year run. Only
+            the fallback in <code>ListPAnnexes</code> can vary by station.
+          </div>
           <div class="eq">CO2fact_i = 2 - exp( ln(2 - alphaCO2_i) * (CO2c - 350) / (600 - 350) )
+
+Calibration points:
+CO2fact_i(350 ppm) = 1
+CO2fact_i(600 ppm) = alphaCO2_i
 
 Intercepted radiation:
 raint_i,j = 0.95 * ParSurRg * Rg_j * [1 - exp(-k_i * LAI_i,j)]
@@ -532,7 +552,7 @@ Ftemp_i,j = 1 - ((Tmoy_j - tcopt_i) / (tcmax_i - tcopt_i))^2     if Tmoy_j > tco
 Ftemp_i,j = max(Ftemp_i,j, 0)
 
 Biomass increment:
-dBiom_i,j = CO2fact_i * WSfact_i,j * [Ebmax_i * raint_i,j - 0.0815 * raint_i,j^2] * Ftemp_i,j / 100
+dBiom_i,j = CO2fact_i * WSfact_i,j * PlantPReducFact * [Ebmax_i * raint_i,j - 0.0815 * raint_i,j^2] * Ftemp_i,j / 100
 Biom_i,j = Biom_i,j-1 + dBiom_i,j
 
 N uptake implied by biomass growth:
@@ -546,6 +566,13 @@ Ngrains_i = int(Cgrain_i * Vitmoy_i + Cgrainv0_i)
 During grain filling:
 IR_i,j = min(Vitircarb_i * (j - JourDrp_i + 1), IRmax_i)
 Grain_i,j = min(Biom_i,j * IR_i,j, P1grainMax_i * Ngrains_i / 100)</div>
+          <p>
+            <code>CO2fact</code> is the only direct CO₂ term in the current
+            implementation. It multiplies daily biomass growth. Its effects on
+            N uptake, grain number and yield are indirect through biomass. No
+            separate direct CO₂ response is applied to LAI, phenology,
+            transpiration, stomatal conductance or water-use efficiency.
+          </p>
           <table class="source-matrix">
             <thead>
               <tr><th>Process block</th><th>Code sections</th><th>Database tables</th><th>Main state variables</th></tr>
@@ -554,13 +581,13 @@ Grain_i,j = min(Biom_i,j * IR_i,j, P1grainMax_i * Ngrains_i / 100)</div>
               <tr>
                 <td>Biomass formation and grain production</td>
                 <td><code>PLanteClass.biomasse</code> <a href="../Converted/PLanteClass.vb">PLanteClass.vb</a>; <code>Rendement</code>; <code>FCO2</code></td>
-                <td><code>General_Parameters</code>, <code>Cultivars</code>, <code>PlantSpecies</code>, <code>ListPAnnexes</code>, <code>Dweather</code></td>
+                <td><code>General_Parameters</code>, <code>Cultivars</code>, <code>PlantSpecies</code>, <code>ListPAnnexes</code>, <code>CO2Yearly</code>, <code>SimUnitList</code>, <code>Dweather</code></td>
                 <td><code>deltaBiom</code>, <code>Biom</code>, <code>Nuptake</code>, <code>Ngrains</code>, <code>IR</code>, <code>Grain</code>, <code>P1grain</code>, <code>Vitmoy</code></td>
               </tr>
             </tbody>
           </table>
           <div class="flow">
-            <div class="node tables"><h4>Database Inputs</h4><div><code>General_Parameters</code><br><code>Cultivars</code><br><code>PlantSpecies</code><br><code>ListPAnnexes</code><br><code>Dweather</code></div></div>
+            <div class="node tables"><h4>Database Inputs</h4><div><code>General_Parameters</code><br><code>Cultivars</code><br><code>PlantSpecies</code><br><code>SimUnitList.Codcc</code><br><code>ListPAnnexes.CO2c</code><br><code>CO2Yearly</code><br><code>Dweather</code></div></div>
             <div class="node code"><h4>Governing Code</h4><div><code>biomasse</code><br><code>Rendement</code><br><code>FCO2</code></div></div>
             <div class="node states"><h4>States and Outputs</h4><div>Daily biomass growth, N uptake demand, grain number, grain yield, single grain weight</div></div>
           </div>
@@ -901,7 +928,7 @@ perteNDrain_j = ConcNsol_j-1 * Dr_j</div>
             <tr><td><code>Turfac</code>, <code>WSfact</code></td><td>Stress multipliers for LAI and biomass</td><td>fraction</td><td>derived</td><td><code>PLanteClass</code></td></tr>
             <tr><td><code>CoefExtin</code></td><td>Canopy extinction coefficient</td><td>dimensionless</td><td><code>PlantSpecies</code></td><td><code>PLanteClass</code></td></tr>
             <tr><td><code>Ebmax</code></td><td>Potential radiation conversion efficiency</td><td>g MJ^-1 in code convention</td><td><code>PlantSpecies</code></td><td><code>PLanteClass</code></td></tr>
-            <tr><td><code>alphaCO2</code>, <code>CO2fact</code></td><td>CO2 sensitivity and resulting multiplier</td><td>dimensionless</td><td><code>PlantSpecies</code>, <code>ListPAnnexes</code></td><td><code>PLanteClass</code></td></tr>
+            <tr><td><code>alphaCO2</code>, <code>CO2fact</code></td><td>Species CO2 sensitivity and resulting biomass multiplier</td><td>dimensionless</td><td><code>PlantSpecies</code>, <code>ListPAnnexes</code>, <code>CO2Yearly</code>, <code>SimUnitList.Codcc</code></td><td><code>DataClimClass</code>, <code>PLanteClass</code></td></tr>
             <tr><td><code>Biom</code>, <code>deltaBiom</code></td><td>Total aerial biomass and daily increment</td><td>t ha^-1 in practice</td><td>derived</td><td><code>PLanteClass</code></td></tr>
             <tr><td><code>Ngrains</code>, <code>Grain</code>, <code>P1grain</code>, <code>IR</code></td><td>Yield components</td><td>grains m^-2, t ha^-1, g grain^-1, fraction</td><td><code>Cultivars</code>, <code>PlantSpecies</code></td><td><code>PLanteClass</code></td></tr>
             <tr><td><code>Zrac</code>, <code>ZRacineMC</code>, <code>Zracmax</code></td><td>Crop and canopy root-front depth</td><td>cm</td><td><code>PlantSpecies</code>, <code>Soil</code></td><td><code>PLanteClass</code>, <code>CultureClass</code></td></tr>

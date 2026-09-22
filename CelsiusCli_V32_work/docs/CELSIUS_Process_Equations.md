@@ -422,13 +422,32 @@ The implemented formulation therefore allows strong post-flowering stress to sha
 ### 10.1 CO2 effect
 
 V32 initializes atmospheric CO₂ from `ListPAnnexes.CO2c`, then looks up the
-simulation year in `CO2Yearly`. When that year is found, its `CO2` value
-replaces the mean value; otherwise the model retains the `ListPAnnexes`
-fallback. The crop response then uses the following correction factor:
+simulation start year in `CO2Yearly` only when `Codcc = "0"`. When that year is
+found, its `CO2` value replaces the station value; otherwise the model retains
+the `ListPAnnexes` fallback and writes a warning. When `Codcc <> "0"`, the
+yearly lookup is not performed.
+
+`CO2Yearly` is indexed only by `yearCO2`, not by `idDclim`. The selected annual
+concentration is consequently identical for every site with the same start
+year. It is selected once during initialization and is not updated annually
+inside a multi-year simulation.
+
+The species-specific crop response uses `PlantSpecies.alphaCO2`:
 
 ```text
 FCO2_i = 2 - exp( ln(2 - alphaCO2_i) * (CO2c - 350) / (600 - 350) )
 ```
+
+This gives the two calibration points:
+
+```text
+FCO2_i(350 ppm) = 1
+FCO2_i(600 ppm) = alphaCO2_i
+```
+
+For illustration, at 400 ppm the factor is approximately 1.044 for
+`alphaCO2 = 1.2` (typical C3 value in the code comments) and 1.021 for
+`alphaCO2 = 1.1` (typical C4 value).
 
 ### 10.2 Intercepted radiation
 
@@ -461,6 +480,7 @@ The crop biomass increment is:
 ```text
 dBiom_i(j) = FCO2_i
            * WSfact_i(j)
+           * PlantPReducFact
            * [Ebmax_i * raint_i(j) - 0.0815 * raint_i(j)^2]
            * Ftemp_i(j) / 100
 ```
@@ -478,6 +498,12 @@ This is a radiation-use efficiency formulation with:
 - stress multiplier
 - thermal multiplier
 - CO2 multiplier
+
+There is no other direct CO₂ term in the current implementation. CO₂ does not
+directly modify LAI, phenology, transpiration, stomatal conductance or
+water-use efficiency. It affects N uptake, grain number and yield indirectly
+because these processes use the CO₂-modified biomass increment or accumulated
+biomass.
 
 ### 10.5 Nitrogen uptake implied by biomass increment
 

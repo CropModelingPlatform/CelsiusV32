@@ -141,6 +141,7 @@ Important consequence: many branches in the simulation depend on `OptionsModelCl
 `DataClimClass.LisClimD` builds the daily climate arrays from:
 
 - `ListPAnnexes`
+- `CO2Yearly`
 - `Dweather`
 
 It prepares arrays such as:
@@ -155,6 +156,37 @@ It prepares arrays such as:
 - `DAYL`
 
 Climate is therefore preloaded for the whole simulation before the daily loop starts.
+
+#### CO₂ selection and role
+
+`DataClimClass.LisClimD` first reads the station-level fallback concentration
+from `ListPAnnexes.CO2c`. The `Codcc` field of the current simulation unit then
+controls whether the yearly table is consulted:
+
+- when `Codcc = "0"`, the model searches `CO2Yearly` for
+  `yearCO2 = StartYear` and uses the corresponding `CO2` value;
+- when `Codcc <> "0"`, it keeps `ListPAnnexes.CO2c`;
+- when `Codcc = "0"` but the start year is absent, it reports a warning and
+  keeps `ListPAnnexes.CO2c`.
+
+`CO2Yearly` has no `idDclim` field. Its annual value is therefore global: all
+sites starting in the same year receive the same concentration. Only the
+fallback in `ListPAnnexes` can vary by climate station. The lookup uses
+`StartYear` once during initialization; the concentration is not updated during
+a multi-year simulation.
+
+For each crop, `PLanteClass.Iniplante` combines this concentration with the
+species parameter `PlantSpecies.alphaCO2`:
+
+```text
+CO2fact_i = 2 - exp[ln(2 - alphaCO2_i) * (CO2c - 350) / 250]
+```
+
+Consequently, `CO2fact = 1` at 350 ppm and `CO2fact = alphaCO2` at 600 ppm.
+The factor multiplies the daily biomass increment in `PLanteClass.biomasse`.
+Its downstream effects on N uptake, grain number and yield pass through the
+additional biomass. V32 does not apply a separate direct CO₂ effect to LAI,
+phenology, transpiration, stomatal conductance or water-use efficiency.
 
 ### 4.4 Initial state
 
