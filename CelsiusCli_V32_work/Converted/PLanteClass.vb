@@ -457,7 +457,7 @@ Public Class PLanteClass
 
 
     'DVS : cumul des constantes thermiques jusqu'au stade en cours inclus (le stade change quand la somme photothermique dépasse DVS)
-    If TS(icult) >= DVS(icult) Then
+    If Not Die(icult) And TS(icult) >= DVS(icult) Then
         Currstge(icult, Joursim) = Currstge(icult, Joursim) + 1
         If Currstge(icult, Joursim) = 6 Then
             Die(icult) = True
