@@ -14,6 +14,7 @@ Namespace ADODB
 
     Public Class Connection
         Private _sqlite As SQLiteConnection
+        Private _transaction As SQLiteTransaction
 
         Public ReadOnly Property InnerConnection As SQLiteConnection
             Get
@@ -27,8 +28,35 @@ Namespace ADODB
         End Sub
 
         Public Sub Close()
+            If _transaction IsNot Nothing Then
+                RollbackTrans()
+            End If
             If _sqlite IsNot Nothing Then
                 _sqlite.Close()
+            End If
+        End Sub
+
+        ' ADO-style transaction control. System.Data.SQLite applies an open
+        ' transaction to every command issued on the same connection.
+        Public Sub BeginTrans()
+            If _transaction Is Nothing Then
+                _transaction = _sqlite.BeginTransaction()
+            End If
+        End Sub
+
+        Public Sub CommitTrans()
+            If _transaction IsNot Nothing Then
+                _transaction.Commit()
+                _transaction.Dispose()
+                _transaction = Nothing
+            End If
+        End Sub
+
+        Public Sub RollbackTrans()
+            If _transaction IsNot Nothing Then
+                _transaction.Rollback()
+                _transaction.Dispose()
+                _transaction = Nothing
             End If
         End Sub
     End Class
@@ -40,6 +68,14 @@ Namespace ADODB
         Private _tableName As String
         Private _fields As RecordsetFields
         Private _connection As SQLiteConnection
+        Private _sql As String
+        ' Recordsets opened on a bare table name load their rows only when a
+        ' row is actually read. Until then _table holds the schema only, so
+        ' appending to a large output table does not reload it.
+        Private _rowsLoaded As Boolean
+        Private _lazyHasRows As Boolean
+        Private _lazyAtLast As Boolean
+        Private _insertCommand As SQLiteCommand
 
         Public Sub New()
             _fields = New RecordsetFields(Me)
@@ -60,6 +96,9 @@ Namespace ADODB
 
         Public ReadOnly Property EOF As Boolean
             Get
+                If _table IsNot Nothing AndAlso Not _rowsLoaded Then
+                    Return Not _lazyHasRows
+                End If
                 Return _table Is Nothing OrElse _table.Rows.Count = 0 OrElse _currentIndex < 0 OrElse _currentIndex >= _table.Rows.Count
             End Get
         End Property
@@ -68,21 +107,63 @@ Namespace ADODB
             Dim sql = NormalizeSource(source)
             _tableName = DetectTableName(source, sql)
             _connection = connection.InnerConnection
-            Dim adapter = New SQLiteDataAdapter(sql, connection.InnerConnection)
-            _table = New DataTable(_tableName)
-            adapter.Fill(_table)
+            _sql = sql
             _pendingRow = Nothing
-            _currentIndex = If(_table.Rows.Count > 0, 0, -1)
+            DisposeInsertCommand()
+
+            If IsBareTableName(source) Then
+                _table = New DataTable(_tableName)
+                Using adapter = New SQLiteDataAdapter($"SELECT * FROM [{_tableName}] LIMIT 0", _connection)
+                    adapter.Fill(_table)
+                End Using
+                Using command = New SQLiteCommand($"SELECT EXISTS (SELECT 1 FROM [{_tableName}])", _connection)
+                    _lazyHasRows = Convert.ToInt64(command.ExecuteScalar()) <> 0
+                End Using
+                _rowsLoaded = False
+                _lazyAtLast = False
+                _currentIndex = -1
+            Else
+                LoadRows(False)
+            End If
+        End Sub
+
+        Private Sub LoadRows(atLast As Boolean)
+            Dim loaded = New DataTable(_tableName)
+            Using adapter = New SQLiteDataAdapter(_sql, _connection)
+                adapter.Fill(loaded)
+            End Using
+            _table = loaded
+            _rowsLoaded = True
+            If _table.Rows.Count = 0 Then
+                _currentIndex = -1
+            ElseIf atLast Then
+                _currentIndex = _table.Rows.Count - 1
+            Else
+                _currentIndex = 0
+            End If
+        End Sub
+
+        Private Sub EnsureRowsLoaded()
+            EnsureTableLoaded()
+            If Not _rowsLoaded Then
+                LoadRows(_lazyAtLast)
+            End If
         End Sub
 
         Public Sub Close()
+            DisposeInsertCommand()
             _table = Nothing
             _pendingRow = Nothing
             _currentIndex = -1
             _connection = Nothing
+            _rowsLoaded = False
         End Sub
 
         Public Sub MoveFirst()
+            If _table IsNot Nothing AndAlso Not _rowsLoaded Then
+                _lazyAtLast = False
+                Return
+            End If
             _currentIndex = If(_table IsNot Nothing AndAlso _table.Rows.Count > 0, 0, -1)
         End Sub
 
@@ -92,6 +173,7 @@ Namespace ADODB
                 Return
             End If
 
+            EnsureRowsLoaded()
             If _currentIndex < _table.Rows.Count Then
                 _currentIndex += 1
             End If
@@ -103,6 +185,7 @@ Namespace ADODB
                 Return
             End If
 
+            EnsureRowsLoaded()
             _currentIndex -= 1
             If _currentIndex < 0 Then
                 _currentIndex = -1
@@ -110,6 +193,10 @@ Namespace ADODB
         End Sub
 
         Public Sub MoveLast()
+            If _table IsNot Nothing AndAlso Not _rowsLoaded Then
+                _lazyAtLast = True
+                Return
+            End If
             _currentIndex = If(_table IsNot Nothing AndAlso _table.Rows.Count > 0, _table.Rows.Count - 1, -1)
         End Sub
 
@@ -120,22 +207,33 @@ Namespace ADODB
 
             ExecuteNonQuery($"DELETE FROM [{_tableName}]")
             _table.Rows.Clear()
+            _rowsLoaded = True
+            _lazyHasRows = False
             _currentIndex = -1
         End Sub
 
         Public Sub AddNew()
             EnsureTableLoaded()
             _pendingRow = _table.NewRow()
-            _currentIndex = _table.Rows.Count
+            If _rowsLoaded Then
+                _currentIndex = _table.Rows.Count
+            End If
         End Sub
 
         Public Sub Update()
             EnsureTableLoaded()
 
             If _pendingRow IsNot Nothing Then
-                _table.Rows.Add(_pendingRow)
                 InsertPendingRow(_pendingRow)
+                If _rowsLoaded Then
+                    _table.Rows.Add(_pendingRow)
+                Else
+                    ' Like ADO, the new record becomes the current (last) one.
+                    _lazyHasRows = True
+                    _lazyAtLast = True
+                End If
                 _pendingRow = Nothing
+                Return
             End If
 
             If _currentIndex >= _table.Rows.Count Then
@@ -171,6 +269,7 @@ Namespace ADODB
                 Return _pendingRow
             End If
 
+            EnsureRowsLoaded()
             If EOF Then
                 Throw New InvalidOperationException("Recordset cursor is not on a valid row.")
             End If
@@ -191,6 +290,10 @@ Namespace ADODB
             End If
 
             Return $"SELECT * FROM [{trimmed}]"
+        End Function
+
+        Private Shared Function IsBareTableName(source As String) As Boolean
+            Return Not Regex.IsMatch(source.Trim(), "^(SELECT|WITH)\b", RegexOptions.IgnoreCase)
         End Function
 
         Private Shared Function DetectTableName(source As String, sql As String) As String
@@ -218,21 +321,34 @@ Namespace ADODB
         End Function
 
         Private Sub InsertPendingRow(row As DataRow)
-            Dim columns = New List(Of String)()
-            Dim parameters = New List(Of String)()
-            Dim command = New SQLiteCommand()
-            command.Connection = _connection
+            ' The INSERT is built once per open recordset and reused.
+            If _insertCommand Is Nothing Then
+                Dim columns = New List(Of String)()
+                Dim parameters = New List(Of String)()
+                _insertCommand = New SQLiteCommand()
+                _insertCommand.Connection = _connection
+
+                For index = 0 To _table.Columns.Count - 1
+                    Dim parameterName = $"@p{index}"
+                    columns.Add($"[{_table.Columns(index).ColumnName}]")
+                    parameters.Add(parameterName)
+                    _insertCommand.Parameters.Add(New SQLiteParameter(parameterName))
+                Next
+
+                _insertCommand.CommandText = $"INSERT INTO [{_tableName}] ({String.Join(", ", columns)}) VALUES ({String.Join(", ", parameters)})"
+            End If
 
             For index = 0 To _table.Columns.Count - 1
-                Dim column = _table.Columns(index)
-                Dim parameterName = $"@p{index}"
-                columns.Add($"[{column.ColumnName}]")
-                parameters.Add(parameterName)
-                command.Parameters.AddWithValue(parameterName, row(column))
+                _insertCommand.Parameters(index).Value = row(index)
             Next
+            _insertCommand.ExecuteNonQuery()
+        End Sub
 
-            command.CommandText = $"INSERT INTO [{_tableName}] ({String.Join(", ", columns)}) VALUES ({String.Join(", ", parameters)})"
-            command.ExecuteNonQuery()
+        Private Sub DisposeInsertCommand()
+            If _insertCommand IsNot Nothing Then
+                _insertCommand.Dispose()
+                _insertCommand = Nothing
+            End If
         End Sub
 
         Private Sub ExecuteNonQuery(sql As String)

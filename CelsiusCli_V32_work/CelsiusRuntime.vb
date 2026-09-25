@@ -158,11 +158,20 @@ Module PrincipalRunner
         lastPercent = 0
         While Not simUnits.EOF
             Codesuite = DbInt(simUnits("Codesuite"))
-            simCtrl.ReadParameters(simUnits, outputDb, compteSim)
-            simCtrl.Simulation()
-            simCtrl.SortieSynthesis(tabSynt)
-            simCtrl.EcritDresu(outputDb, compteSim)
-            simCtrl.MemoEtatFinal()
+            ' One transaction per simulation: its synthesis and daily rows are
+            ' committed together instead of one disk sync per inserted row.
+            outputDb.BeginTrans()
+            Try
+                simCtrl.ReadParameters(simUnits, outputDb, compteSim)
+                simCtrl.Simulation()
+                simCtrl.SortieSynthesis(tabSynt)
+                simCtrl.EcritDresu(outputDb, compteSim)
+                simCtrl.MemoEtatFinal()
+                outputDb.CommitTrans()
+            Catch
+                outputDb.RollbackTrans()
+                Throw
+            End Try
 
             simUnits.MoveNext()
             compteSim += 1
