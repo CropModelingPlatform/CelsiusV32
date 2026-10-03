@@ -30,7 +30,7 @@ Public Class FertiMinClass
     '**** REDONDANT ! A verifier si critère = idsim ou idtec !!!
     While Not rstDataFertiMin.EOF And Not Trouve
     'attention idDclim si Escape, codeStat si mada
-        If rstDataFertiMin("IdTech_Com") = SimUnit.sIdSim Then Trouve = True
+        If rstDataFertiMin("IdTech_Com") = SimUnit.sIdTec Then Trouve = True
         rstDataFertiMin.MoveNext
     End While
     If Not Trouve Then

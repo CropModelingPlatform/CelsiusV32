@@ -94,6 +94,10 @@ Initialize-TargetProject -TemplateDir $TemplateProjectDir -TargetDir $TargetProj
     -AccessPath $AccessPath `
     -OutputPath $SchemaPath
 
+if (Test-Path -LiteralPath $sqlitePath) {
+    Remove-Item -LiteralPath $sqlitePath -Force
+}
+
 & $PythonExe (Join-Path $PSScriptRoot "build_sqlite_from_tsv.py") `
     $SchemaPath `
     $inputTsvDir `

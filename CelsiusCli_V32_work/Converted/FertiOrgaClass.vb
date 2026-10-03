@@ -33,13 +33,13 @@ Public Class FertiOrgaClass
 
     If SimUnit.bSY_Bissextile Then Ndyear1 = 366 Else Ndyear1 = 365
     rstDataFertiOrg = New ADODB.Recordset
-    rstDataFertiOrg.Open("SELECT * FROM FertiOrg_List where IdTech_Com='" & SimUnit.sIdTec & "' Order by DateFertiOrg", DataBase_Cnn, adOpenDynamic)
+    rstDataFertiOrg.Open("SELECT * FROM FertiOrga_List where IdTech_Com='" & SimUnit.sIdTec & "' Order by DateFertiOrg", DataBase_Cnn, adOpenDynamic)
     ' *** à vérifier : redondant avec ouverture requête, voir si critère = idsim ou idtec
     Trouve = False
 
     While Not rstDataFertiOrg.EOF And Not Trouve
     'attention idDclim si Escape, codeStat si mada
-        If rstDataFertiOrg("IdTech_Com") = SimUnit.sIdSim Then Trouve = True
+        If rstDataFertiOrg("IdTech_Com") = SimUnit.sIdTec Then Trouve = True
         rstDataFertiOrg.MoveNext
     End While
     If Not Trouve Then
